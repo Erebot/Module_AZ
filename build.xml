@@ -11,7 +11,7 @@
     <property name="domain"         value="AZ"/>
     <property name="version"        value="0.3.2"/>
     <property name="email"          value="clicky@erebot.net"/>
-    <property name="summary"        value="A game for Erebot where you have to find a word"/>
+    <property name="summary"        value="A game for Erebot where you have to guess a word"/>
     <!-- @TODO: Use real values here. -->
     <property name="description"><![CDATA[
 ${summary}
