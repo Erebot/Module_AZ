@@ -31,7 +31,8 @@ require_once(__DIR__.'/exceptions.php');
 class AZ
 {
     const WORD_FILTER = '/^[a-z0-9\\-\\.\\(\\)_\']+(?: [a-z0-9\\-\\.\\(\\)_\']+)?$/';
-    static protected $availableLists = NULL;
+    static protected $_wordlistsDir = NULL;
+    static protected $_availableLists = NULL;
 
     protected $loadedLists;
     protected $min;
@@ -73,15 +74,18 @@ class AZ
 
     static public function getAvailableLists()
     {
-        if (self::$availableLists === NULL) {
-            self::$availableLists = array();
-            $files = scandir(dirname(__FILE__).'/wordlists/');
+        if (self::$_wordlistsDir === NULL)
+            self::$_wordlistsDir = __DIR__.'/wordlists/';
+
+        if (self::$_availableLists === NULL) {
+            self::$_availableLists = array();
+            $files = scandir(self::$_wordlistsDir);
             foreach ($files as $file) {
                 if (substr($file, -4) == '.txt')
-                    self::$availableLists[] = substr($file, 0, -4);
+                    self::$_availableLists[] = substr($file, 0, -4);
             }
         }
-        return self::$availableLists;
+        return self::$_availableLists;
     }
 
     public function getLoadedListsNames()
@@ -99,10 +103,10 @@ class AZ
         if (isset($this->loadedLists[$list]))
             return;
 
-        if (!in_array($list, self::$availableLists, TRUE))
+        if (!in_array($list, self::$_availableLists, TRUE))
             throw new EAZBadListName($list);
 
-        $file = dirname(__FILE__).'/wordlists/'.$list.'.txt';
+        $file = self::$_wordlistsDir.DIRECTORY_SEPARATOR.$list.'.txt';
         if (!is_readable($file))
             throw new EAZUnreadableFile($file);
 
@@ -235,4 +239,3 @@ class AZ
     }
 }
 
-?>
