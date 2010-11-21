@@ -16,16 +16,5 @@
     along with Erebot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-class   EAZUnreadableFile
-extends Exception {}
-
-class   EAZBadListName
-extends Exception {}
-
-class   EAZNotEnoughWords
-extends Exception {}
-
-class   EAZInvalidWord
-extends Exception {}
-
-?>
+class   Erebot_Module_AZ_UnreadableFileException
+extends Erebot_Module_AZ_Exception {}

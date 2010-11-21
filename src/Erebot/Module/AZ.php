@@ -16,23 +16,11 @@
     along with Erebot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-if (!defined('__DIR__')) {
-  class __FILE_CLASS__ {
-    function  __toString() {
-      $X = debug_backtrace();
-      return dirname($X[1]['file']);
-    }
-  }
-  define('__DIR__', new __FILE_CLASS__);
-} 
-
-include_once(__DIR__.'/src/game.php');
-
-class   ErebotModule_AZ
-extends ErebotModuleBase
+class   Erebot_Module_AZ
+extends Erebot_Module_Base
 {
     static protected $_metadata = array(
-        'requires'  =>  array('TriggerRegistry'),
+        'requires'  =>  array('Erebot_Module_TriggerRegistry'),
     );
     protected $_handlers;
     protected $_triggers;
@@ -41,9 +29,11 @@ extends ErebotModuleBase
     public function reload($flags)
     {
         if ($flags & self::RELOAD_HANDLERS) {
-            $registry   = $this->_connection->getModule('TriggerRegistry',
-                            ErebotConnection::MODULE_BY_NAME);
-            $matchAny  = ErebotUtils::getVStatic($registry, 'MATCH_ANY');
+            $registry   = $this->_connection->getModule(
+                'Erebot_Module_TriggerRegistry',
+                Erebot_Connection::MODULE_BY_NAME
+            );
+            $matchAny  = Erebot_Utils::getVStatic($registry, 'MATCH_ANY');
 
             if (!($flags & self::RELOAD_INIT)) {
                 foreach ($this->_handlers as &$handler)
@@ -60,29 +50,29 @@ extends ErebotModuleBase
                 throw new Exception($translator->gettext('Could not register AZ creation trigger'));
             }
 
-            $filter = new ErebotTextFilter($this->_mainCfg);
-            $filter->addPattern(ErebotTextFilter::TYPE_STATIC, $trigger, TRUE);
-            $filter->addPattern(ErebotTextFilter::TYPE_WILDCARD, $trigger.' *', TRUE);
-            $this->_handlers['create']   =  new ErebotEventHandler(
+            $filter = new Erebot_TextFilter($this->_mainCfg);
+            $filter->addPattern(Erebot_TextFilter::TYPE_STATIC, $trigger, TRUE);
+            $filter->addPattern(Erebot_TextFilter::TYPE_WILDCARD, $trigger.' *', TRUE);
+            $this->_handlers['create']   =  new Erebot_EventHandler(
                                                 array($this, 'handleCreate'),
-                                                'ErebotEventTextChan',
+                                                'Erebot_Event_ChanText',
                                                 NULL, $filter);
             $this->_connection->addEventHandler($this->_handlers['create']);
 
-            $targets = new ErebotEventTargets(ErebotEventTargets::ORDER_ALLOW_DENY);
-            $filter = new ErebotTextFilter(
+            $targets = new Erebot_EventTarget(Erebot_EventTarget::ORDER_ALLOW_DENY);
+            $filter = new Erebot_TextFilter(
                             $this->_mainCfg,
-                            ErebotTextFilter::TYPE_REGEXP,
-                            AZ::WORD_FILTER);
-            $this->_handlers['rawText']  =  new ErebotEventHandler(
+                            Erebot_TextFilter::TYPE_REGEXP,
+                            Erebot_Module_AZ_Game::WORD_FILTER);
+            $this->_handlers['rawText']  =  new Erebot_EventHandler(
                                                 array($this, 'handleRawText'),
-                                                'ErebotEventTextChan',
+                                                'Erebot_Event_ChanText',
                                                 $targets, $filter);
             $this->_connection->addEventHandler($this->_handlers['rawText']);
         }
     }
 
-    public function handleCreate(iErebotEvent &$event)
+    public function handleCreate(Erebot_Interface_Event_Generic &$event)
     {
         $chan       = $event->getChan();
         $text       = $event->getText();
@@ -93,8 +83,8 @@ extends ErebotModuleBase
             $msg = $translator->gettext('The following wordlists are available: '.
                         '<for from="lists" item="list"><b><var name="list"/>'.
                         '</b></for>.');
-            $tpl = new ErebotStyling($msg, $translator);
-            $tpl->assign('lists', AZ::getAvailableLists());
+            $tpl = new Erebot_Styling($msg, $translator);
+            $tpl->assign('lists', Erebot_Module_AZ_Game::getAvailableLists());
             $this->sendMessage($chan, $tpl->render());
             return $event->preventDefault(TRUE);
         }
@@ -107,7 +97,7 @@ extends ErebotModuleBase
                         '<b><var name="attempts"/></b> attempts and <b><var '.
                         'name="bad"/></b> invalid words. The answer was <u>'.
                         '<var name="answer"/></u>.');
-                $tpl = new ErebotStyling($msg, $translator);
+                $tpl = new Erebot_Styling($msg, $translator);
                 $tpl->assign('attempts',    $game->getAttemptsCount());
                 $tpl->assign('bad',         $game->getInvalidWordsCount());
                 $tpl->assign('answer',      $game->getTarget());
@@ -129,7 +119,7 @@ extends ErebotModuleBase
                     'name="min"/></b> -- <b><var name="max"/></b> (<b><var '.
                     'name="attempts"/></b> attempts and <b><var name="bad"/>'.
                     '</b> invalid words)');
-            $tpl = new ErebotStyling($msg, $translator);
+            $tpl = new Erebot_Styling($msg, $translator);
             $tpl->assign('attempts',    $game->getAttemptsCount());
             $tpl->assign('bad',         $game->getInvalidWordsCount());
             $tpl->assign('min',         $min);
@@ -141,10 +131,13 @@ extends ErebotModuleBase
 
         $lists = $text->getTokens(1);
         if ($lists === NULL)
-            $lists = $this->parseString('default_lists', AZ::getAvailableLists());
+            $lists = $this->parseString(
+                'default_lists',
+                Erebot_Module_AZ_Game::getAvailableLists()
+            );
         $lists = explode(' ', $lists);
         try {
-            $game = new AZ($lists);
+            $game = new Erebot_Module_AZ_Game($lists);
         }
         catch (EAZNotEnoughWords $e) {
             $msg = $translator->gettext('There are not enough words in the '.
@@ -157,8 +150,8 @@ extends ErebotModuleBase
         // Capture any text which gets on this channel.
         $targets =& $this->_handlers['rawText']->getTargets();
         $targets->addRule(
-            ErebotEventTargets::TYPE_ALLOW,
-            ErebotEventTargets::MATCH_ALL,
+            Erebot_EventTarget::TYPE_ALLOW,
+            Erebot_EventTarget::MATCH_ALL,
             $chan
         );
 
@@ -166,7 +159,7 @@ extends ErebotModuleBase
                     '<b><var name="chan"/></b> using the following wordlists: '.
                     '<for from="lists" item="list"><b><var name="list"/></b>'.
                     '</for>.');
-        $tpl    = new ErebotStyling($msg, $translator);
+        $tpl    = new Erebot_Styling($msg, $translator);
         $tpl->assign('chan',    $chan);
         $tpl->assign('lists',   $game->getLoadedListsNames());
         $this->sendMessage($chan, $tpl->render());
@@ -177,14 +170,14 @@ extends ErebotModuleBase
     {
         $targets =& $this->_handlers['rawText']->getTargets();
         $targets->removeRule(
-            ErebotEventTargets::TYPE_ALLOW,
-            ErebotEventTargets::MATCH_ALL,
+            Erebot_EventTarget::TYPE_ALLOW,
+            Erebot_EventTarget::MATCH_ALL,
             $chan
         );
         unset($this->_chans[$chan]);
     }
 
-    public function handleRawText(iErebotEvent &$event)
+    public function handleRawText(Erebot_Interface_Event_Generic &$event)
     {
         $chan       = $event->getChan();
         $translator = $this->getTranslator($chan);
@@ -199,7 +192,7 @@ extends ErebotModuleBase
         catch (EAZInvalidWord $e) {
             $msg    =   $translator->gettext('<b><var name="word"/></b> doesn\'t '.
                             'exist or is incorrect for this game.');
-            $tpl    = new ErebotStyling($msg, $translator);
+            $tpl    = new Erebot_Styling($msg, $translator);
             $tpl->assign('word', $e->getMessage());
             $this->sendMessage($chan, $tpl->render());
             return;
@@ -212,7 +205,7 @@ extends ErebotModuleBase
             $msg = $translator->gettext('<b>BINGO!</b> The answer was indeed '.
                         '<u><var name="answer"/></u>. Congratulations '.
                         '<b><var name="nick"/></b>!');
-            $tpl = new ErebotStyling($msg, $translator);
+            $tpl = new Erebot_Styling($msg, $translator);
             $tpl->assign('answer',  $game->getTarget());
             $tpl->assign('nick',    $event->getSource());
             $this->sendMessage($chan, $tpl->render());
@@ -220,7 +213,7 @@ extends ErebotModuleBase
             $msg = $translator->gettext('The answer was found after '.
                         '<b><var name="attempts"/></b> attempts and '.
                         '<b><var name="bad"/></b> incorrect words.');
-            $tpl = new ErebotStyling($msg, $translator);
+            $tpl = new Erebot_Styling($msg, $translator);
             $tpl->assign('attempts',    $game->getAttemptsCount());
             $tpl->assign('bad',         $game->getInvalidWordsCount());
             $this->sendMessage($chan, $tpl->render());
@@ -239,7 +232,7 @@ extends ErebotModuleBase
 
         $msg = $translator->gettext('New range: <b><var name="min"/></b> -- '.
                     '<b><var name="max"/></b>');
-        $tpl = new ErebotStyling($msg, $translator);
+        $tpl = new Erebot_Styling($msg, $translator);
         $tpl->assign('min', $min);
         $tpl->assign('max', $max);
         $this->sendMessage($chan, $tpl->render());

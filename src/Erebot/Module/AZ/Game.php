@@ -16,19 +16,7 @@
     along with Erebot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-if (!defined('__DIR__')) {
-  class __FILE_CLASS__ {
-    function  __toString() {
-      $X = debug_backtrace();
-      return dirname($X[1]['file']);
-    }
-  }
-  define('__DIR__', new __FILE_CLASS__);
-} 
-
-require_once(__DIR__.'/exceptions.php');
-
-class AZ
+class Erebot_Module_AZ_Game
 {
     const WORD_FILTER = '/^[a-z0-9\\-\\.\\(\\)_\']+(?: [a-z0-9\\-\\.\\(\\)_\']+)?$/';
     static protected $_wordlistsDir = NULL;
@@ -51,14 +39,14 @@ class AZ
                 $this->loadWordlist($list);
                 $wordlist = array_merge($wordlist, $this->loadedLists[$list]);
             }
-            catch (EAZBadListName $e) {}
-            catch (EAZUnreadableFile $e) {}
+            catch (Erebot_Module_AZ_BadListNameException $e) {}
+            catch (Erebot_Module_AZ_UnreadableFileException $e) {}
         }
         unset($list);
 
         $wordlist = array_unique($wordlist);
         if (count($wordlist) < 3)
-            throw new EAZNotEnoughWords();
+            throw new Erebot_Module_AZ_NotEnoughWordsException();
 
         $this->attempts     =
         $this->invalidWords = 0;
@@ -74,8 +62,22 @@ class AZ
 
     static public function getAvailableLists()
     {
-        if (self::$_wordlistsDir === NULL)
-            self::$_wordlistsDir = __DIR__.'/wordlists/';
+        if (self::$_wordlistsDir === NULL) {
+            $parts = array(
+                dirname(__FILE__),
+                '..',
+                '..',
+                '..',
+                '..',
+                'data',
+            );
+            if (basename(dirname(dirname(dirname(dirname(__FILE__))))) != 'trunk') {
+                array_unshift($parts, 'pear.erebot.net');
+                array_unshift($parts, 'Erebot_Module_AZ');
+            }
+            array_unshift($parts, 'wordlists');
+            self::$_wordlistsDir = implode(DIRECTORY_SEPARATOR, $parts);
+        }
 
         if (self::$_availableLists === NULL) {
             self::$_availableLists = array();
@@ -104,15 +106,15 @@ class AZ
             return;
 
         if (!in_array($list, self::$_availableLists, TRUE))
-            throw new EAZBadListName($list);
+            throw new Erebot_Module_AZ_BadListNameException($list);
 
         $file = self::$_wordlistsDir.DIRECTORY_SEPARATOR.$list.'.txt';
         if (!is_readable($file))
-            throw new EAZUnreadableFile($file);
+            throw new Erebot_Module_AZ_UnreadableFileException($file);
 
         $wordlist = file($file);
         if ($wordlist === FALSE)
-            throw new EAZUnreadableFile($file);
+            throw new Erebot_Module_AZ_UnreadableFileException($file);
         $wordlist = array_map('trim', $wordlist);
 
         $encoding = 'ASCII';
@@ -222,7 +224,7 @@ class AZ
 
         if (!$ok) {
             $this->invalidWords++;
-            throw new EAZInvalidWord($word);
+            throw new Erebot_Module_AZ_InvalidWordException($word);
         }
 
         $this->attempts++;

@@ -1,19 +1,7 @@
 <?php
 
-if (!defined('__DIR__')) {
-  class __FILE_CLASS__ {
-    function  __toString() {
-      $X = debug_backtrace();
-      return dirname($X[1]['file']);
-    }
-  }
-  define('__DIR__', new __FILE_CLASS__);
-} 
-
-require_once(__DIR__.'/../src/game.php');
-
 class AZ_TestHelper
-extends AZ
+extends Erebot_Module_AZ_Game
 {
     public function __construct($lists)
     {
@@ -23,7 +11,7 @@ extends AZ
 
     static public function getAvailableLists()
     {
-        self::$_wordlistsDir = __DIR__.'/wordlists/';
+        self::$_wordlistsDir = dirname(__FILE__).'/wordlists/';
         return parent::getAvailableLists();
     }
 }
@@ -39,7 +27,7 @@ extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException EAZNotEnoughWords
+     * @expectedException Erebot_Module_AZ_NotEnoughWordsException
      */
     public function testInsufficientNumberOfWords()
     {
