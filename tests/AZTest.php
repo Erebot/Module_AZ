@@ -22,8 +22,9 @@ extends PHPUnit_Framework_TestCase
     public function testAvailableLists()
     {
         $this->assertEquals(array('test', 'twowords'), AZ_TestHelper::getAvailableLists());
-        $this->_az = new AZ_TestHelper(array('test'));
-        $this->assertEquals(array('test'), $this->_az->getLoadedListsNames());
+        $az = new AZ_TestHelper(array('test'));
+        $this->assertEquals(array('test'), $az->getLoadedListsNames());
+        unset($az);
     }
 
     /**
@@ -31,28 +32,56 @@ extends PHPUnit_Framework_TestCase
      */
     public function testInsufficientNumberOfWords()
     {
-        $this->_az = new AZ_TestHelper(array('twowords'));
+        $az = new AZ_TestHelper(array('twowords'));
     }
 
     public function testWordProposal()
     {
-        $this->_az = new AZ_TestHelper(array('test'));
-        $this->assertEquals(NULL, $this->_az->getMinimum());
-        $this->assertEquals(NULL, $this->_az->getMaximum());
+        $az = new AZ_TestHelper(array('test'));
+        $this->assertEquals('foo',  $az->getTarget());
+        $this->assertEquals(0,      $az->getAttemptsCount());
+        $this->assertEquals(0,      $az->getInvalidWordsCount());
 
-        $this->assertEquals(FALSE, $this->_az->proposeWord('qux'));
-        $this->assertEquals(NULL, $this->_az->getMinimum());
-        $this->assertEquals('qux', $this->_az->getMaximum());
+        $this->assertEquals(NULL,   $az->getMinimum());
+        $this->assertEquals(NULL,   $az->getMaximum());
 
-        $this->assertEquals(FALSE, $this->_az->proposeWord('baz'));
-        $this->assertEquals('baz', $this->_az->getMinimum());
-        $this->assertEquals('qux', $this->_az->getMaximum());
+        try {
+            $az->proposeWord('uh');
+            $this->fail('Expected Erebot_Module_AZ_InvalidWordException');
+        }
+        catch (Erebot_Module_AZ_InvalidWordException $e) {
+        }
 
-        $this->assertEquals(NULL, $this->_az->proposeWord('bar'));
-        $this->assertEquals('baz', $this->_az->getMinimum());
-        $this->assertEquals('qux', $this->_az->getMaximum());
+        $this->assertEquals(FALSE,  $az->proposeWord('qux'));
+        $this->assertEquals(NULL,   $az->getMinimum());
+        $this->assertEquals('qux',  $az->getMaximum());
 
-        $this->assertEquals(TRUE, $this->_az->proposeWord('foo'));
+        $this->assertEquals(FALSE,  $az->proposeWord('baz'));
+        $this->assertEquals('baz',  $az->getMinimum());
+        $this->assertEquals('qux',  $az->getMaximum());
+
+        $this->assertEquals(NULL,   $az->proposeWord('bar'));
+        $this->assertEquals('baz',  $az->getMinimum());
+        $this->assertEquals('qux',  $az->getMaximum());
+
+        $this->assertEquals(NULL,   $az->proposeWord('#!\\@/$^'));
+
+        $this->assertEquals(TRUE,   $az->proposeWord('foo'));
+        $this->assertEquals('foo',  $az->getTarget());
+        $this->assertEquals(3,      $az->getAttemptsCount());
+        $this->assertEquals(1,      $az->getInvalidWordsCount());
+        unset($az);
+    }
+
+    public function testUnreadableWordlist()
+    {
+        $az = new AZ_TestHelper(array('test', 'does not exist'));
+        unset($az);
+    }
+
+    public function testDefaultWordlists()
+    {
+        
     }
 }
 
