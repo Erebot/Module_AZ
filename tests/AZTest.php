@@ -14,6 +14,12 @@ extends Erebot_Module_AZ_Game
         self::$_wordlistsDir = dirname(__FILE__).'/wordlists/';
         return parent::getAvailableLists();
     }
+
+    static public function reset()
+    {
+        self::$_wordlistsDir = NULL;
+        self::$_availableLists = NULL;
+    }
 }
 
 class   AZTest
@@ -81,7 +87,21 @@ extends PHPUnit_Framework_TestCase
 
     public function testDefaultWordlists()
     {
-        
+        AZ_TestHelper::reset();
+        $expected = array(
+            'pkmn1en',
+            'pkmn1fr',
+            'pkmn2en',
+            'pkmn2fr',
+            'pkmn3en',
+            'pkmn3fr',
+            'pkmn4en',
+            'pkmn4fr',
+        );
+
+        $lists = Erebot_Module_AZ_Game::getAvailableLists();
+        sort($lists);
+        $this->assertEquals($expected, $lists);
     }
 }
 
