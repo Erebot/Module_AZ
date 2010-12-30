@@ -51,24 +51,21 @@ extends Erebot_Module_Base
                 throw new Exception($translator->gettext('Could not register AZ creation trigger'));
             }
 
-            $filter = new Erebot_TextFilter($this->_mainCfg);
-            $filter->addPattern(Erebot_TextFilter::TYPE_STATIC, $trigger, TRUE);
-            $filter->addPattern(Erebot_TextFilter::TYPE_WILDCARD, $trigger.' *', TRUE);
             $this->_handlers['create']   =  new Erebot_EventHandler(
-                                                array($this, 'handleCreate'),
-                                                'Erebot_Event_ChanText',
-                                                NULL, $filter);
+                array($this, 'handleCreate'),
+                'Erebot_Event_ChanText'
+            );
+            $this->_handlers['create']
+                ->addFilter(new Erebot_TextFilter_Static($trigger, TRUE))
+                ->addFilter(new Erebot_TextFilter_Wildcard($trigger.' *', TRUE));
             $this->_connection->addEventHandler($this->_handlers['create']);
 
-            $targets = new Erebot_EventTarget(Erebot_EventTarget::ORDER_ALLOW_DENY);
-            $filter = new Erebot_TextFilter(
-                            $this->_mainCfg,
-                            Erebot_TextFilter::TYPE_REGEXP,
-                            Erebot_Module_AZ_Game::WORD_FILTER);
             $this->_handlers['rawText']  =  new Erebot_EventHandler(
-                                                array($this, 'handleRawText'),
-                                                'Erebot_Event_ChanText',
-                                                $targets, $filter);
+                array($this, 'handleRawText'),
+                'Erebot_Event_ChanText',
+                new Erebot_EventTarget(Erebot_EventTarget::ORDER_ALLOW_DENY),
+                new Erebot_TextFilter_Regex(Erebot_Module_AZ_Game::WORD_FILTER)
+            );
             $this->_connection->addEventHandler($this->_handlers['rawText']);
         }
     }
