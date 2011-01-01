@@ -62,9 +62,10 @@ extends Erebot_Module_Base
 
             $this->_handlers['rawText']  =  new Erebot_EventHandler(
                 array($this, 'handleRawText'),
-                'Erebot_Event_ChanText',
-                new Erebot_EventTarget(Erebot_EventTarget::ORDER_ALLOW_DENY),
-                new Erebot_TextFilter_Regex(Erebot_Module_AZ_Game::WORD_FILTER)
+                new Erebot_Event_Match_All(
+                    new Erebot_Event_Match_InstanceOf('Erebot_Event_ChanText'),
+                    new Erebot_Event_Match_TextRegex(Erebot_Module_AZ_Game::WORD_FILTER)
+                )
             );
             $this->_connection->addEventHandler($this->_handlers['rawText']);
         }
@@ -145,14 +146,6 @@ extends Erebot_Module_Base
         }
         $this->_chans[$chan] =& $game;
 
-        // Capture any text which gets on this channel.
-        $targets =& $this->_handlers['rawText']->getTargets();
-        $targets->addRule(
-            Erebot_EventTarget::TYPE_ALLOW,
-            Erebot_EventTarget::MATCH_ALL,
-            $chan
-        );
-
         $msg = $translator->gettext('A new <b>A-Z</b> game has been started on '.
                     '<b><var name="chan"/></b> using the following wordlists: '.
                     '<for from="lists" item="list"><b><var name="list"/></b>'.
@@ -166,12 +159,6 @@ extends Erebot_Module_Base
 
     protected function stopGame($chan)
     {
-        $targets =& $this->_handlers['rawText']->getTargets();
-        $targets->removeRule(
-            Erebot_EventTarget::TYPE_ALLOW,
-            Erebot_EventTarget::MATCH_ALL,
-            $chan
-        );
         unset($this->_chans[$chan]);
     }
 
