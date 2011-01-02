@@ -53,11 +53,14 @@ extends Erebot_Module_Base
 
             $this->_handlers['create']   =  new Erebot_EventHandler(
                 array($this, 'handleCreate'),
-                'Erebot_Event_ChanText'
+                new Erebot_Event_Match_All(
+                    new Erebot_Event_Match_InstanceOf('Erebot_Event_ChanText'),
+                    new Erebot_Event_Match_Any(
+                        new Erebot_Event_Match_TextStatic($trigger, TRUE),
+                        new Erebot_Event_Match_TextWildcard($trigger.' *', TRUE)
+                    )
+                )
             );
-            $this->_handlers['create']
-                ->addFilter(new Erebot_TextFilter_Static($trigger, TRUE))
-                ->addFilter(new Erebot_TextFilter_Wildcard($trigger.' *', TRUE));
             $this->_connection->addEventHandler($this->_handlers['create']);
 
             $this->_handlers['rawText']  =  new Erebot_EventHandler(
