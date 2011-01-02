@@ -135,7 +135,7 @@ extends Erebot_Module_Base
         if ($lists === NULL)
             $lists = $this->parseString(
                 'default_lists',
-                Erebot_Module_AZ_Game::getAvailableLists()
+                implode(' ', Erebot_Module_AZ_Game::getAvailableLists())
             );
         $lists = explode(' ', $lists);
         try {
