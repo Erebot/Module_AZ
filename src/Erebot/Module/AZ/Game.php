@@ -72,8 +72,8 @@ class Erebot_Module_AZ_Game
                 'data',
             );
             if (basename(dirname(dirname(dirname(dirname(dirname(__FILE__)))))) != 'trunk') {
-                array_unshift($parts, 'pear.erebot.net');
                 array_unshift($parts, 'Erebot_Module_AZ');
+                array_unshift($parts, 'pear.erebot.net');
             }
             array_push($parts, 'wordlists');
             self::$_wordlistsDir = implode(DIRECTORY_SEPARATOR, $parts);
