@@ -28,7 +28,7 @@ extends Erebot_Module_Base
     protected $_triggers;
     protected $_chans;
 
-    public function reload($flags)
+    public function _reload($flags)
     {
         if ($flags & self::RELOAD_HANDLERS) {
             $registry   = $this->_connection->getModule(
@@ -72,6 +72,10 @@ extends Erebot_Module_Base
             );
             $this->_connection->addEventHandler($this->_handlers['rawText']);
         }
+    }
+
+    protected function _unload()
+    {
     }
 
     public function handleCreate(Erebot_Interface_Event_Generic &$event)
