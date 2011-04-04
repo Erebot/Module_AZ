@@ -37,9 +37,8 @@ extends Erebot_Module_Base
             $matchAny  = Erebot_Utils::getVStatic($registry, 'MATCH_ANY');
 
             if (!($flags & self::RELOAD_INIT)) {
-                foreach ($this->_handlers as &$handler)
+                foreach ($this->_handlers as $handler)
                     $this->_connection->removeEventHandler($handler);
-                unset($handler);
                 $registry->freeTriggers($this->_trigger, $matchAny);
             }
 
@@ -78,7 +77,7 @@ extends Erebot_Module_Base
     {
     }
 
-    public function handleCreate(Erebot_Interface_Event_Generic &$event)
+    public function handleCreate(Erebot_Interface_Event_ChanText $event)
     {
         $chan       = $event->getChan();
         $text       = $event->getText();
@@ -169,7 +168,7 @@ extends Erebot_Module_Base
         unset($this->_chans[$chan]);
     }
 
-    public function handleRawText(Erebot_Interface_Event_Generic &$event)
+    public function handleRawText(Erebot_Interface_Event_ChanText $event)
     {
         $chan       = $event->getChan();
         $translator = $this->getTranslator($chan);
