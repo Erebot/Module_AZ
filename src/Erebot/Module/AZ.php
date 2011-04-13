@@ -144,7 +144,7 @@ extends Erebot_Module_Base
         try {
             $game = new Erebot_Module_AZ_Game($lists);
         }
-        catch (EAZNotEnoughWords $e) {
+        catch (Erebot_Module_AZ_NotEnoughWordsException $e) {
             $msg = $translator->gettext('There are not enough words in the '.
                         'selected wordlists to start a new game.');
             $this->sendMessage($chan, $msg);
@@ -180,7 +180,7 @@ extends Erebot_Module_Base
         try {
             $found = $game->proposeWord((string) $event->getText());
         }
-        catch (EAZInvalidWord $e) {
+        catch (Erebot_Module_AZ_InvalidWordException $e) {
             $msg    =   $translator->gettext('<b><var name="word"/></b> doesn\'t '.
                             'exist or is incorrect for this game.');
             $tpl    = new Erebot_Styling($msg, $translator);
