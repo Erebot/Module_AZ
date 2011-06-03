@@ -63,19 +63,32 @@ class Erebot_Module_AZ_Game
     static public function getAvailableLists()
     {
         if (self::$_wordlistsDir === NULL) {
-            $parts = array(
-                dirname(__FILE__),
-                '..',
-                '..',
-                '..',
-                '..',
-                'data',
-            );
             if (basename(dirname(dirname(dirname(dirname(dirname(__FILE__)))))) != 'trunk') {
-                array_unshift($parts, 'Erebot_Module_AZ');
-                array_unshift($parts, 'pear.erebot.net');
+                $parts = array(
+                    dirname(__FILE__),
+                    '..',
+                    '..',
+                    '..',
+                    '..',
+                    'data',
+                    'pear.erebot.net',
+                    'Erebot_Module_Wordlists',
+                );
             }
-            array_push($parts, 'wordlists');
+            else {
+                $parts = array(
+                    dirname(__FILE__),
+                    '..',
+                    '..',
+                    '..',
+                    '..',
+                    '..',
+                    '..',
+                    'Wordlists',
+                    'trunk',
+                    'data',
+                );
+            }
             self::$_wordlistsDir = implode(DIRECTORY_SEPARATOR, $parts);
         }
 

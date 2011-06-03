@@ -106,24 +106,5 @@ extends PHPUnit_Framework_TestCase
         $az = new AZ_TestHelper(array('test', 'does not exist'));
         unset($az);
     }
-
-    public function testDefaultWordlists()
-    {
-        AZ_TestHelper::reset();
-        $expected = array(
-            'pkmn1en',
-            'pkmn1fr',
-            'pkmn2en',
-            'pkmn2fr',
-            'pkmn3en',
-            'pkmn3fr',
-            'pkmn4en',
-            'pkmn4fr',
-        );
-
-        $lists = Erebot_Module_AZ_Game::getAvailableLists();
-        sort($lists);
-        $this->assertEquals($expected, $lists);
-    }
 }
 
