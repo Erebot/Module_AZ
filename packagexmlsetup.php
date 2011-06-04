@@ -20,4 +20,36 @@ $compatible->dependencies['required']->package['pear2.php.net/PEAR2_Exception']-
 $compatible->dependencies['required']->package['pear2.php.net/PEAR2_MultiErrors']->save();
 $compatible->dependencies['required']->package['pear2.php.net/PEAR2_HTTP_Request']->save();
 */
+
+$deps = array(
+    'required' => array(
+        'pear.erebot.net/Erebot_Module_Wordlists',
+    ),
+);
+
+foreach (array($package, $compatible) as $obj) {
+    if (strpos($obj->version['release'], "alpha") === FALSE) {
+        $obj->stability['release'] = 'stable';
+        $stability = '';
+    }
+    else
+        $stability = '-alpha';
+
+    $obj->dependencies['required']->php = '5.2.0';
+
+    $obj->license['name'] = 'GPL';
+    $obj->license['uri'] = 'http://www.gnu.org/licenses/gpl-3.0.txt';
+    // Pyrus <= 2.0.0a3 has a bug with this, see:
+    // https://github.com/saltybeagle/PEAR2_Pyrus/issues/12
+#    $obj->license['path'] = 'LICENSE';
+
+    foreach ($deps as $req => $data) {
+        foreach ($data as $dep) {
+            if (substr($dep, 0, strpos($dep, '/')) == 'pear.erebot.net')
+                $dep .= $stability;
+            $obj->dependencies[$req]->package[$dep]->save();
+        }
+    }
+}
+
 ?>
