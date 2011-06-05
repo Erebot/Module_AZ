@@ -28,12 +28,8 @@ $deps = array(
 );
 
 foreach (array($package, $compatible) as $obj) {
-    if (strpos($obj->version['release'], "alpha") === FALSE) {
+    if (strpos($obj->version['release'], "alpha") === FALSE)
         $obj->stability['release'] = 'stable';
-        $stability = '';
-    }
-    else
-        $stability = '-alpha';
 
     $obj->dependencies['required']->php = '5.2.0';
 
@@ -43,13 +39,9 @@ foreach (array($package, $compatible) as $obj) {
     // https://github.com/saltybeagle/PEAR2_Pyrus/issues/12
 #    $obj->license['path'] = 'LICENSE';
 
-    foreach ($deps as $req => $data) {
-        foreach ($data as $dep) {
-            if (substr($dep, 0, strpos($dep, '/')) == 'pear.erebot.net')
-                $dep .= $stability;
+    foreach ($deps as $req => $data)
+        foreach ($data as $dep)
             $obj->dependencies[$req]->package[$dep]->save();
-        }
-    }
 }
 
 ?>
