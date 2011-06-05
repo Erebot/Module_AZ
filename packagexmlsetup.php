@@ -28,9 +28,6 @@ $deps = array(
 );
 
 foreach (array($package, $compatible) as $obj) {
-    if (strpos($obj->version['release'], "alpha") === FALSE)
-        $obj->stability['release'] = 'stable';
-
     $obj->dependencies['required']->php = '5.2.0';
 
     $obj->license['name'] = 'GPL';
