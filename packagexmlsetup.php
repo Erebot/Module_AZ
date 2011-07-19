@@ -24,6 +24,7 @@ $compatible->dependencies['required']->package['pear2.php.net/PEAR2_HTTP_Request
 $deps = array(
     'required' => array(
         'pear.erebot.net/Erebot_Module_Wordlists',
+        'pear.erebot.net/Erebot_Module_TriggerRegistry',
     ),
 );
 
@@ -41,4 +42,3 @@ foreach (array($package, $compatible) as $obj) {
             $obj->dependencies[$req]->package[$dep]->save();
 }
 
-?>

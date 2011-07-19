@@ -19,11 +19,6 @@
 class   Erebot_Module_AZ
 extends Erebot_Module_Base
 {
-    static protected $_metadata = array(
-        'requires'  =>  array(
-            'Erebot_Module_TriggerRegistry',
-        ),
-    );
     protected $_handlers;
     protected $_triggers;
     protected $_chans;
