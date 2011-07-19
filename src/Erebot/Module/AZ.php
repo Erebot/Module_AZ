@@ -42,11 +42,13 @@ extends Erebot_Module_Base
             $this->_trigger  = $registry->registerTriggers($trigger, $matchAny);
             if ($this->_trigger === NULL) {
                 $translator = $this->getTranslator(FALSE);
-                throw new Exception($translator->gettext('Could not register AZ creation trigger'));
+                throw new Exception($translator->gettext(
+                    'Could not register AZ creation trigger'
+                ));
             }
 
             $this->_handlers['create']   =  new Erebot_EventHandler(
-                array($this, 'handleCreate'),
+                new Erebot_Callable(array($this, 'handleCreate')),
                 new Erebot_Event_Match_All(
                     new Erebot_Event_Match_InstanceOf('Erebot_Event_ChanText'),
                     new Erebot_Event_Match_Any(
@@ -58,10 +60,12 @@ extends Erebot_Module_Base
             $this->_connection->addEventHandler($this->_handlers['create']);
 
             $this->_handlers['rawText']  =  new Erebot_EventHandler(
-                array($this, 'handleRawText'),
+                new Erebot_Callable(array($this, 'handleRawText')),
                 new Erebot_Event_Match_All(
                     new Erebot_Event_Match_InstanceOf('Erebot_Event_ChanText'),
-                    new Erebot_Event_Match_TextRegex(Erebot_Module_AZ_Game::WORD_FILTER)
+                    new Erebot_Event_Match_TextRegex(
+                        Erebot_Module_AZ_Game::WORD_FILTER
+                    )
                 )
             );
             $this->_connection->addEventHandler($this->_handlers['rawText']);
