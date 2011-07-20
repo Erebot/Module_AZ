@@ -76,7 +76,10 @@ extends Erebot_Module_Base
     {
     }
 
-    public function handleCreate(Erebot_Interface_Event_ChanText $event)
+    public function handleCreate(
+        Erebot_Interface_EventHandler   $handler,
+        Erebot_Interface_Event_ChanText $event
+    )
     {
         $chan       = $event->getChan();
         $text       = $event->getText();
@@ -167,7 +170,10 @@ extends Erebot_Module_Base
         unset($this->_chans[$chan]);
     }
 
-    public function handleRawText(Erebot_Interface_Event_ChanText $event)
+    public function handleRawText(
+        Erebot_Interface_EventHandler   $handler,
+        Erebot_Interface_Event_ChanText $event
+    )
     {
         $chan       = $event->getChan();
         $translator = $this->getTranslator($chan);
