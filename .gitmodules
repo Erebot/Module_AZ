@@ -7,3 +7,6 @@
 [submodule "vendor/Erebot_API"]
 	path = vendor/Erebot_API
 	url = git://github.com/fpoirotte/Erebot_API.git
+[submodule "vendor/Erebot_Module_Wordlists"]
+	path = vendor/Erebot_Module_Wordlists
+	url = git://github.com/fpoirotte/Erebot_Module_Wordlists.git

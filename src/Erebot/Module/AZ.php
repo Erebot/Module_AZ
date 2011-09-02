@@ -42,9 +42,11 @@ extends Erebot_Module_Base
             $this->_trigger  = $registry->registerTriggers($trigger, $matchAny);
             if ($this->_trigger === NULL) {
                 $translator = $this->getTranslator(FALSE);
-                throw new Exception($translator->gettext(
-                    'Could not register AZ creation trigger'
-                ));
+                throw new Exception(
+                    $translator->gettext(
+                        'Could not register AZ creation trigger'
+                    )
+                );
             }
 
             $this->_handlers['create']   =  new Erebot_EventHandler(
@@ -87,9 +89,10 @@ extends Erebot_Module_Base
 
         $cmds = array("list", "lists");
         if (in_array(strtolower($text->getTokens(1)), $cmds)) {
-            $msg = $translator->gettext('The following wordlists are available: '.
-                        '<for from="lists" item="list"><b><var name="list"/>'.
-                        '</b></for>.');
+            $msg = $translator->gettext(
+                'The following wordlists are available: '.
+                '<for from="lists" item="list"><b><var name="list"/></b></for>.'
+            );
             $tpl = new Erebot_Styling($msg, $translator);
             $tpl->assign('lists', Erebot_Module_AZ_Game::getAvailableLists());
             $this->sendMessage($chan, $tpl->render());
@@ -100,14 +103,16 @@ extends Erebot_Module_Base
             $game =& $this->_chans[$chan];
             $cmds = array("cancel", "end", "stop");
             if (in_array(strtolower($text->getTokens(1)), $cmds)) {
-                $msg = $translator->gettext('The <b>A-Z</b> game was stopped after '.
-                        '<b><var name="attempts"/></b> attempts and <b><var '.
-                        'name="bad"/></b> invalid words. The answer was <u>'.
-                        '<var name="answer"/></u>.');
+                $msg = $translator->gettext(
+                    'The <b>A-Z</b> game was stopped after '.
+                    '<b><var name="attempts"/></b> attempts and <b><var '.
+                    'name="bad"/></b> invalid words. The answer was <u>'.
+                    '<var name="answer"/></u>.'
+                );
                 $tpl = new Erebot_Styling($msg, $translator);
-                $tpl->assign('attempts',    $game->getAttemptsCount());
-                $tpl->assign('bad',         $game->getInvalidWordsCount());
-                $tpl->assign('answer',      $game->getTarget());
+                $tpl->assign('attempts', $game->getAttemptsCount());
+                $tpl->assign('bad', $game->getInvalidWordsCount());
+                $tpl->assign('answer', $game->getTarget());
                 $this->sendMessage($chan, $tpl->render());
                 $this->stopGame($chan);
                 return $event->preventDefault(TRUE);
@@ -121,17 +126,19 @@ extends Erebot_Module_Base
             if ($max === NULL)
                 $max = '???';
 
-            $msg = $translator->gettext('<b>A-Z</b> (<for from="lists" item="list">'.
-                    '<var name="list"/></for>). Current range: <b><var '.
-                    'name="min"/></b> -- <b><var name="max"/></b> (<b><var '.
-                    'name="attempts"/></b> attempts and <b><var name="bad"/>'.
-                    '</b> invalid words)');
+            $msg = $translator->gettext(
+                '<b>A-Z</b> (<for from="lists" item="list">'.
+                '<var name="list"/></for>). Current range: '.
+                '<b><var name="min"/></b> -- <b><var name="max"/></b> '.
+                '(<b><var name="attempts"/></b> attempts and '.
+                '<b><var name="bad"/></b> invalid words)'
+            );
             $tpl = new Erebot_Styling($msg, $translator);
-            $tpl->assign('attempts',    $game->getAttemptsCount());
-            $tpl->assign('bad',         $game->getInvalidWordsCount());
-            $tpl->assign('min',         $min);
-            $tpl->assign('max',         $max);
-            $tpl->assign('lists',       $game->getLoadedListsNames());
+            $tpl->assign('attempts', $game->getAttemptsCount());
+            $tpl->assign('bad', $game->getInvalidWordsCount());
+            $tpl->assign('min', $min);
+            $tpl->assign('max', $max);
+            $tpl->assign('lists', $game->getLoadedListsNames());
             $this->sendMessage($chan, $tpl->render());
             return $event->preventDefault(TRUE);
         }
@@ -147,20 +154,23 @@ extends Erebot_Module_Base
             $game = new Erebot_Module_AZ_Game($lists);
         }
         catch (Erebot_Module_AZ_NotEnoughWordsException $e) {
-            $msg = $translator->gettext('There are not enough words in the '.
-                        'selected wordlists to start a new game.');
+            $msg = $translator->gettext(
+                'There are not enough words in the '.
+                'selected wordlists to start a new game.'
+            );
             $this->sendMessage($chan, $msg);
             return $event->preventDefault(TRUE);
         }
         $this->_chans[$chan] =& $game;
 
-        $msg = $translator->gettext('A new <b>A-Z</b> game has been started on '.
-                    '<b><var name="chan"/></b> using the following wordlists: '.
-                    '<for from="lists" item="list"><b><var name="list"/></b>'.
-                    '</for>.');
+        $msg = $translator->gettext(
+            'A new <b>A-Z</b> game has been started on '.
+            '<b><var name="chan"/></b> using the following wordlists: '.
+            '<for from="lists" item="list"><b><var name="list"/></b></for>.'
+        );
         $tpl    = new Erebot_Styling($msg, $translator);
-        $tpl->assign('chan',    $chan);
-        $tpl->assign('lists',   $game->getLoadedListsNames());
+        $tpl->assign('chan', $chan);
+        $tpl->assign('lists', $game->getLoadedListsNames());
         $this->sendMessage($chan, $tpl->render());
         return $event->preventDefault(TRUE);
     }
@@ -186,9 +196,11 @@ extends Erebot_Module_Base
             $found = $game->proposeWord((string) $event->getText());
         }
         catch (Erebot_Module_AZ_InvalidWordException $e) {
-            $msg    =   $translator->gettext('<b><var name="word"/></b> doesn\'t '.
-                            'exist or is incorrect for this game.');
-            $tpl    = new Erebot_Styling($msg, $translator);
+            $msg = $translator->gettext(
+                '<b><var name="word"/></b> doesn\'t '.
+                'exist or is incorrect for this game.'
+            );
+            $tpl = new Erebot_Styling($msg, $translator);
             $tpl->assign('word', $e->getMessage());
             $this->sendMessage($chan, $tpl->render());
             return;
@@ -198,20 +210,24 @@ extends Erebot_Module_Base
             return;
 
         if ($found) {
-            $msg = $translator->gettext('<b>BINGO!</b> The answer was indeed '.
-                        '<u><var name="answer"/></u>. Congratulations '.
-                        '<b><var name="nick"/></b>!');
+            $msg = $translator->gettext(
+                '<b>BINGO!</b> The answer was indeed '.
+                '<u><var name="answer"/></u>. Congratulations '.
+                '<b><var name="nick"/></b>!'
+            );
             $tpl = new Erebot_Styling($msg, $translator);
-            $tpl->assign('answer',  $game->getTarget());
-            $tpl->assign('nick',    $event->getSource());
+            $tpl->assign('answer', $game->getTarget());
+            $tpl->assign('nick', $event->getSource());
             $this->sendMessage($chan, $tpl->render());
 
-            $msg = $translator->gettext('The answer was found after '.
-                        '<b><var name="attempts"/></b> attempts and '.
-                        '<b><var name="bad"/></b> incorrect words.');
+            $msg = $translator->gettext(
+                'The answer was found after '.
+                '<b><var name="attempts"/></b> attempts and '.
+                '<b><var name="bad"/></b> incorrect words.'
+            );
             $tpl = new Erebot_Styling($msg, $translator);
-            $tpl->assign('attempts',    $game->getAttemptsCount());
-            $tpl->assign('bad',         $game->getInvalidWordsCount());
+            $tpl->assign('attempts', $game->getAttemptsCount());
+            $tpl->assign('bad', $game->getInvalidWordsCount());
             $this->sendMessage($chan, $tpl->render());
 
             $this->stopGame($chan);
@@ -226,8 +242,9 @@ extends Erebot_Module_Base
         if ($max === NULL)
             $max = '???';
 
-        $msg = $translator->gettext('New range: <b><var name="min"/></b> -- '.
-                    '<b><var name="max"/></b>');
+        $msg = $translator->gettext(
+            'New range: <b><var name="min"/></b> -- <b><var name="max"/></b>'
+        );
         $tpl = new Erebot_Styling($msg, $translator);
         $tpl->assign('min', $min);
         $tpl->assign('max', $max);

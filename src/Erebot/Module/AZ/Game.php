@@ -18,75 +18,67 @@
 
 class Erebot_Module_AZ_Game
 {
-    const WORD_FILTER = '/^[a-z0-9\\-\\.\\(\\)_\']+(?: [a-z0-9\\-\\.\\(\\)_\']+)?$/';
+    const WORD_FILTER =
+        '/^[a-z0-9\\-\\.\\(\\)_\']+(?: [a-z0-9\\-\\.\\(\\)_\']+)?$/';
     static protected $_wordlistsDir = NULL;
     static protected $_availableLists = NULL;
 
-    protected $loadedLists;
-    protected $min;
-    protected $max;
-    protected $target;
-    protected $attempts;
-    protected $invalidWords;
+    protected $_loadedLists;
+    protected $_min;
+    protected $_max;
+    protected $_target;
+    protected $_attempts;
+    protected $_invalidWords;
 
     public function __construct($lists)
     {
         self::getAvailableLists();
         $wordlist = array();
-        $this->loadedLists = array();
-        foreach ($lists as &$list) {
+        $this->_loadedLists = array();
+        foreach ($lists as $list) {
             try {
                 $this->loadWordlist($list);
-                $wordlist = array_merge($wordlist, $this->loadedLists[$list]);
+                $wordlist = array_merge($wordlist, $this->_loadedLists[$list]);
             }
-            catch (Erebot_Module_AZ_BadListNameException $e) {}
-            catch (Erebot_Module_AZ_UnreadableFileException $e) {}
+            catch (Erebot_Module_AZ_BadListNameException $e) {
+            }
+            catch (Erebot_Module_AZ_UnreadableFileException $e) {
+            }
         }
-        unset($list);
 
         $wordlist = array_unique($wordlist);
         if (count($wordlist) < 3)
             throw new Erebot_Module_AZ_NotEnoughWordsException();
 
-        $this->attempts     =
-        $this->invalidWords = 0;
-        $this->min          =
-        $this->max          = NULL;
-        $this->target       = $wordlist[array_rand($wordlist)];
+        $this->_attempts     =
+        $this->_invalidWords = 0;
+        $this->_min          =
+        $this->_max          = NULL;
+        $this->_target       = $wordlist[array_rand($wordlist)];
     }
 
     public function __destruct()
     {
-        unset($this->loadedLists);
+        unset($this->_loadedLists);
     }
 
     static public function getAvailableLists()
     {
         if (self::$_wordlistsDir === NULL) {
-            if (basename(dirname(dirname(dirname(dirname(dirname(__FILE__)))))) != 'trunk') {
+            $base = '@data_dir@';
+            // Running from the repository.
+            if ($base == '@'.'data_dir'.'@') {
                 $parts = array(
-                    dirname(__FILE__),
-                    '..',
-                    '..',
-                    '..',
-                    '..',
-                    'data',
-                    'pear.erebot.net',
+                    dirname(dirname(dirname(dirname(dirname(__FILE__))))),
+                    'vendor',
                     'Erebot_Module_Wordlists',
+                    'data',
                 );
             }
             else {
                 $parts = array(
-                    dirname(__FILE__),
-                    '..',
-                    '..',
-                    '..',
-                    '..',
-                    '..',
-                    '..',
-                    'Wordlists',
-                    'trunk',
-                    'data',
+                    dirname($base . DIRECTORY_SEPARATOR),
+                    'Erebot_Module_Wordlists',
                 );
             }
             self::$_wordlistsDir = implode(DIRECTORY_SEPARATOR, $parts);
@@ -105,7 +97,7 @@ class Erebot_Module_AZ_Game
 
     public function getLoadedListsNames()
     {
-        return array_keys($this->loadedLists);
+        return array_keys($this->_loadedLists);
     }
 
     protected function filterWord($word)
@@ -115,7 +107,7 @@ class Erebot_Module_AZ_Game
 
     protected function loadWordlist($list)
     {
-        if (isset($this->loadedLists[$list]))
+        if (isset($this->_loadedLists[$list]))
             return;
 
         if (!in_array($list, self::$_availableLists, TRUE))
@@ -135,11 +127,15 @@ class Erebot_Module_AZ_Game
             $encoding = trim(substr(array_shift($wordlist), 1));
         $encodingArray = array_fill(0, count($wordlist), $encoding);
 
-        $wordlist = array_map(array($this, 'toUTF8'), $wordlist, $encodingArray);
+        $wordlist = array_map(
+            array($this, 'toUTF8'),
+            $wordlist,
+            $encodingArray
+        );
         $wordlist = array_map('strtolower', $wordlist);
         $wordlist = array_filter($wordlist, array($this, 'filterWord'));
 
-        $this->loadedLists[$list] = $wordlist;
+        $this->_loadedLists[$list] = $wordlist;
     }
 
     // Duplicated from ErebotUtils as we need a way to convert
@@ -148,16 +144,19 @@ class Erebot_Module_AZ_Game
     {
         // From http://w3.org/International/questions/qa-forms-utf-8.html
         // Pointed out by bitseeker on http://php.net/utf8_encode
-        return preg_match('%^(?:
-              [\x09\x0A\x0D\x20-\x7E]            # ASCII
-            | [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
-            |  \xE0[\xA0-\xBF][\x80-\xBF]        # excluding overlongs
-            | [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
-            |  \xED[\x80-\x9F][\x80-\xBF]        # excluding surrogates
-            |  \xF0[\x90-\xBF][\x80-\xBF]{2}     # planes 1-3
-            | [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
-            |  \xF4[\x80-\x8F][\x80-\xBF]{2}     # plane 16
-        )*$%SDxs', $text);
+        return preg_match(
+            '%^(?:
+                  [\x09\x0A\x0D\x20-\x7E]            # ASCII
+                | [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
+                |  \xE0[\xA0-\xBF][\x80-\xBF]        # excluding overlongs
+                | [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
+                |  \xED[\x80-\x9F][\x80-\xBF]        # excluding surrogates
+                |  \xF0[\x90-\xBF][\x80-\xBF]{2}     # planes 1-3
+                | [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
+                |  \xF4[\x80-\x8F][\x80-\xBF]{2}     # plane 16
+            )*$%SDxs',
+            $text
+        );
     }
 
     // Duplicated from ErebotUtils as we need a way to convert
@@ -183,7 +182,9 @@ class Erebot_Module_AZ_Game
         if (function_exists('html_entity_decode'))
             return html_entity_decode(
                 htmlentities($text, ENT_QUOTES, $from),
-                ENT_QUOTES, 'UTF-8');
+                ENT_QUOTES,
+                'UTF-8'
+            );
 
         return $text;
     }
@@ -191,27 +192,27 @@ class Erebot_Module_AZ_Game
 
     public function getMinimum()
     {
-        return $this->min;
+        return $this->_min;
     }
 
     public function getMaximum()
     {
-        return $this->max;
+        return $this->_max;
     }
 
     public function getTarget()
     {
-        return $this->target;
+        return $this->_target;
     }
 
     public function getAttemptsCount()
     {
-        return $this->attempts;
+        return $this->_attempts;
     }
 
     public function getInvalidWordsCount()
     {
-        return $this->invalidWords;
+        return $this->_invalidWords;
     }
 
     public function proposeWord($word)
@@ -220,14 +221,14 @@ class Erebot_Module_AZ_Game
         if (!preg_match(self::WORD_FILTER, $word))
             return NULL;
 
-        if ($this->min !== NULL && strcmp($this->min, $word) >= 0)
+        if ($this->_min !== NULL && strcmp($this->_min, $word) >= 0)
             return NULL;
 
-        if ($this->max !== NULL && strcmp($this->max, $word) <= 0)
+        if ($this->_max !== NULL && strcmp($this->_max, $word) <= 0)
             return NULL;
 
         $ok = FALSE;
-        foreach ($this->loadedLists as &$list) {
+        foreach ($this->_loadedLists as &$list) {
             if (in_array($word, $list)) {
                 $ok = TRUE;
                 break;
@@ -236,19 +237,19 @@ class Erebot_Module_AZ_Game
         unset($list);
 
         if (!$ok) {
-            $this->invalidWords++;
+            $this->_invalidWords++;
             throw new Erebot_Module_AZ_InvalidWordException($word);
         }
 
-        $this->attempts++;
-        $cmp = strcmp($this->target, $word);
+        $this->_attempts++;
+        $cmp = strcmp($this->_target, $word);
         if (!$cmp)
             return TRUE;
 
         if ($cmp < 0)
-            $this->max = $word;
+            $this->_max = $word;
         else
-            $this->min = $word;
+            $this->_min = $word;
 
         return FALSE;
     }

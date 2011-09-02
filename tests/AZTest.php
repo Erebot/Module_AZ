@@ -22,7 +22,7 @@ extends Erebot_Module_AZ_Game
     public function __construct($lists)
     {
         parent::__construct($lists);
-        $this->target = 'foo';
+        $this->_target = 'foo';
     }
 
     static public function getAvailableLists()

@@ -17,5 +17,7 @@
 */
 
 class   Erebot_Module_AZ_Exception
-extends Exception {}
+extends Exception
+{
+}
 

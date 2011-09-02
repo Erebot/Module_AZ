@@ -17,4 +17,7 @@
 */
 
 class   Erebot_Module_AZ_UnreadableFileException
-extends Erebot_Module_AZ_Exception {}
+extends Erebot_Module_AZ_Exception
+{
+}
+
