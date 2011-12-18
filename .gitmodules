@@ -10,3 +10,6 @@
 [submodule "vendor/Erebot_Module_Wordlists"]
 	path = vendor/Erebot_Module_Wordlists
 	url = git://github.com/fpoirotte/Erebot_Module_Wordlists.git
+[submodule "docs/src/generic"]
+	path = docs/src/generic
+	url = git://github.com/fpoirotte/Erebot_Module_Skeleton.wiki.git
