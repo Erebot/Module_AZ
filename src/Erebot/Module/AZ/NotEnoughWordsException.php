@@ -16,6 +16,12 @@
     along with Erebot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/**
+ *  \brief
+ *      Raised when an attempt is made to start
+ *      a new game and there are not enough words
+ *      in the selected wordlist.
+ */
 class   Erebot_Module_AZ_NotEnoughWordsException
 extends Erebot_Module_AZ_Exception
 {

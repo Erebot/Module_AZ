@@ -16,6 +16,11 @@
     along with Erebot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/**
+ *  \brief
+ *      Raised when the content of the given
+ *      wordlist cannot be read.
+ */
 class   Erebot_Module_AZ_UnreadableFileException
 extends Erebot_Module_AZ_Exception
 {

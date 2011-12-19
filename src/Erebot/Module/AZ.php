@@ -16,13 +16,41 @@
     along with Erebot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/**
+ * \brief
+ *      A module that provides a game called "A-Z".
+ *
+ * In the "A-Z" game, the bot selects a word from a dictionary
+ * and contestants must guess that word. Each time a word is
+ * proposed, the range of possible words is reduced, until only
+ * one word remains.
+ */
 class   Erebot_Module_AZ
 extends Erebot_Module_Base
 {
+    /// Handlers created by this module.
     protected $_handlers;
+
+    /// Triggers registered by this module (as tokens).
     protected $_triggers;
+
+    /// Associative array mapping channels to games currently in progress.
     protected $_chans;
 
+    /**
+     * This method is called whenever the module is (re)loaded.
+     *
+     * \param int $flags
+     *      A bitwise OR of the Erebot_Module_Base::RELOAD_*
+     *      constants. Your method should take proper actions
+     *      depending on the value of those flags.
+     *
+     * \note
+     *      See the documentation on individual RELOAD_*
+     *      constants for a list of possible values.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function _reload($flags)
     {
         if ($flags & self::RELOAD_HANDLERS) {
@@ -74,10 +102,25 @@ extends Erebot_Module_Base
         }
     }
 
+    /// \copydoc Erebot_Module_Base::_unload()
     protected function _unload()
     {
     }
 
+    /**
+     * Despite its name, this method can be used both to create
+     * or stop a game, or to list available dictionaries.
+     *
+     * \param Erebot_Interface_EventHandler $handler
+     *      Handler that triggered this event.
+     *
+     * \param Erebot_Interface_Event_Base_ChanText $event
+     *      A message that asks the bot to either create a new game,
+     *      stop a running game or list available dictionaries.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @SuppressWarnings(PHPMD.UnusedLocalVariable)
+     */
     public function handleCreate(
         Erebot_Interface_EventHandler   $handler,
         Erebot_Interface_Event_ChanText $event
@@ -178,11 +221,31 @@ extends Erebot_Module_Base
         return $event->preventDefault(TRUE);
     }
 
+    /**
+     * Stops a currently running game and frees
+     * all resources associated with it.
+     *
+     * \param string $chan
+     *      IRC channel on which the game
+     *      should be stopped.
+     */
     protected function stopGame($chan)
     {
         unset($this->_chans[$chan]);
     }
 
+    /**
+     * Handles messages: words are interpreted
+     * as propositions for the game.
+     *
+     * \param Erebot_Interface_EventHandler $handler
+     *      Handler that triggered this event.
+     *
+     * \param Erebot_Interface_Event_Base_ChanText $event
+     *      A message with a proposition for the game.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function handleRawText(
         Erebot_Interface_EventHandler   $handler,
         Erebot_Interface_Event_ChanText $event

@@ -16,6 +16,10 @@
     along with Erebot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/**
+ * \brief
+ *      Raised when an invalid word is proposed.
+ */
 class   Erebot_Module_AZ_InvalidWordException
 extends Erebot_Module_AZ_Exception
 {
