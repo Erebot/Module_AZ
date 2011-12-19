@@ -418,6 +418,7 @@ class Erebot_Module_AZ_Game
             }
         }
         unset($list);
+        return $ok;
     }
 
     /**
