@@ -30,8 +30,7 @@ class Erebot_Module_AZ_Game
                                                 # Unicode letters/numbers plus
                                                 # some additional characters.
         (?:\\ [\\p{N}\\p{L}\\-\\.\\(\\)_\']+)?  # Another such word.
-        $@ux
-    ';
+        $@ux';
 
     /// Path to the directory where wordlists are kept.
     static protected $_wordlistsDir = NULL;
