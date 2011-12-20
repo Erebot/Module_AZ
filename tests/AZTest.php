@@ -36,6 +36,14 @@ extends Erebot_Module_AZ_Game
         self::$_wordlistsDir = NULL;
         self::$_availableLists = NULL;
     }
+
+    public function setTarget($target)
+    {
+        if (!$this->_checkWord($target)) {
+            throw new Exception("Not a valid target");
+        }
+        $this->_target = $target;
+    }
 }
 
 class   AZTest
@@ -43,7 +51,10 @@ extends PHPUnit_Framework_TestCase
 {
     public function testAvailableLists()
     {
-        $this->assertEquals(array('test', 'twowords'), AZ_TestHelper::getAvailableLists());
+        $this->assertEquals(
+            array('accentuated', 'test', 'twowords'),
+            AZ_TestHelper::getAvailableLists()
+        );
         $az = new AZ_TestHelper(array('test'));
         $this->assertEquals(array('test'), $az->getLoadedListsNames());
         unset($az);
@@ -99,6 +110,14 @@ extends PHPUnit_Framework_TestCase
     {
         $az = new AZ_TestHelper(array('test', 'does not exist'));
         unset($az);
+    }
+
+    public function testAccentuatedWords()
+    {
+        $az = new AZ_TestHelper(array('accentuated'));
+        // "LATIN SMALL LETTER C WITH CEDILLA" in UTF-8.
+        $az->setTarget("\xC3\xA7");
+        $this->assertEquals(TRUE, $az->proposeWord("\xC3\xA7"));
     }
 }
 

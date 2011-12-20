@@ -24,9 +24,14 @@
  */
 class Erebot_Module_AZ_Game
 {
-    /// Pattern used to recognize "words".
-    const WORD_FILTER =
-        '/^[a-z0-9\\-\\.\\(\\)_\']+(?: [a-z0-9\\-\\.\\(\\)_\']+)?$/';
+    /// Pattern used to recognize (composed) "words".
+    const WORD_FILTER = '@^
+        [\\p{N}\\p{L}\\-\\.\\(\\)_\']+          # A "word", ie. a sequence of
+                                                # Unicode letters/numbers plus
+                                                # some additional characters.
+        (?:\\ [\\p{N}\\p{L}\\-\\.\\(\\)_\']+)?  # Another such word.
+        $@ux
+    ';
 
     /// Path to the directory where wordlists are kept.
     static protected $_wordlistsDir = NULL;
@@ -180,7 +185,7 @@ class Erebot_Module_AZ_Game
      *      sequences of (alphanumeric and other) characters
      *      separated using a single space (eg. "Fo'o. B4-r_").
      */
-    protected function filterWord($word)
+    protected function _filterWord($word)
     {
         return (bool) preg_match(self::WORD_FILTER, $word);
     }
@@ -221,48 +226,13 @@ class Erebot_Module_AZ_Game
         $encodingArray = array_fill(0, count($wordlist), $encoding);
 
         $wordlist = array_map(
-            array($this, 'toUTF8'),
+            array($this, '_toUTF8'),
             $wordlist,
             $encodingArray
         );
         $wordlist = array_map('strtolower', $wordlist);
-        $wordlist = array_filter($wordlist, array($this, 'filterWord'));
-
+        $wordlist = array_filter($wordlist, array($this, '_filterWord'));
         $this->_loadedLists[$list] = $wordlist;
-    }
-
-    /**
-     * Tests whether a text is composed
-     * of only valid UTF-8 sequences.
-     *
-     * \param string $text
-     *      Some text to test.
-     *
-     * \retval bool
-     *      TRUE if the given text contains only
-     *      valid UTF-8 sequences, FALSE otherwise.
-     *
-     * \note
-     *      This method is duplicated from Erebot_Util as we need a way
-     *      to test texts without depending on Erebot's inner workings.
-     */
-    static protected function isUTF8($text)
-    {
-        // From http://w3.org/International/questions/qa-forms-utf-8.html
-        // Pointed out by bitseeker on http://php.net/utf8_encode
-        return preg_match(
-            '%^(?:
-                  [\x09\x0A\x0D\x20-\x7E]            # ASCII
-                | [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
-                |  \xE0[\xA0-\xBF][\x80-\xBF]        # excluding overlongs
-                | [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
-                |  \xED[\x80-\x9F][\x80-\xBF]        # excluding surrogates
-                |  \xF0[\x90-\xBF][\x80-\xBF]{2}     # planes 1-3
-                | [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
-                |  \xF4[\x80-\x8F][\x80-\xBF]{2}     # plane 16
-            )*$%SDxs',
-            $text
-        );
     }
 
     /**
@@ -292,9 +262,9 @@ class Erebot_Module_AZ_Game
      *      found to do so). Instead, the text is returned
      *      unchanged.
      */
-    static protected function toUTF8($text, $from='iso-8859-1')
+    static protected function _toUTF8($text, $from='iso-8859-1')
     {
-        if (self::isUTF8($text))
+        if (!strcasecmp($from, 'utf-8'))
             return $text;
 
         if (!strcasecmp($from, 'iso-8859-1') &&
@@ -302,7 +272,7 @@ class Erebot_Module_AZ_Game
             return utf8_encode($text);
 
         if (function_exists('iconv'))
-            return iconv($from, 'UTF-8//TRANSLIT', $text);
+            return iconv($from, 'UTF-8', $text);
 
         if (function_exists('recode'))
             return recode($from.'..utf-8', $text);
