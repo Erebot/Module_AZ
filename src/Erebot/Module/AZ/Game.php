@@ -201,7 +201,7 @@ class Erebot_Module_AZ_Game
 
         $ok = array_walk(
             $wordlist,
-            array('self', '_normalizeWord'),
+            array('Erebot_Module_AZ_Utils', 'normalizeWord'),
             $encoding
         );
         if (!$ok)
@@ -270,88 +270,6 @@ class Erebot_Module_AZ_Game
         return $this->_invalidWords;
     }
 
-    /**
-     * Encodes some text in UTF-8.
-     *
-     * \param string $text
-     *      Text to encode in UTF-8.
-     *
-     * \param string $from
-     *      (optional) The text's current encoding.
-     *
-     * \retval string
-     *      The text, encoded in UTF-8 or returned
-     *      without any modification in case no
-     *      mechanism could be found to change
-     *      the text's encoding.
-     *
-     * \note
-     *      This method has been duplicated from Erebot_Utils
-     *      as we need a way to convert some random text to UTF-8
-     *      without depending on Erebot's inner workings.
-     *
-     * \warning
-     *      Contrary to Erebot's method, this method does not
-     *      throw an exception when the given text could not
-     *      be encoded in UTF-8 (because no mechanism could be
-     *      found to do so). Instead, the text is returned
-     *      unchanged.
-     */
-    static protected function _toUTF8($text, $from='iso-8859-1')
-    {
-        if (!strcasecmp($from, 'utf-8'))
-            return $text;
-
-        if (!strcasecmp($from, 'iso-8859-1') &&
-            function_exists('utf8_encode'))
-            return utf8_encode($text);
-
-        if (function_exists('iconv'))
-            return iconv($from, 'UTF-8', $text);
-
-        if (function_exists('recode'))
-            return recode($from.'..utf-8', $text);
-
-        if (function_exists('mb_convert_encoding'))
-            return mb_convert_encoding($text, 'UTF-8', $from);
-
-        if (function_exists('html_entity_decode'))
-            return html_entity_decode(
-                htmlentities($text, ENT_QUOTES, $from),
-                ENT_QUOTES,
-                'UTF-8'
-            );
-
-        return $text;
-    }
-
-    /**
-     * Normalizes a word.
-     *
-     * \param string $word
-     *      Word to normalize.
-     *
-     * \param mixed $key
-     *      This parameter is ignored.
-     *
-     * \param string $encoding
-     *      Encoding of the word.
-     *
-     * \warning
-     *      $word is modified in place.
-     *
-     * \note
-     *      This method's prototype is compatible
-     *      with array_filter()'s expectations.
-     */
-    static protected function _normalizeWord(&$word, $key, $encoding)
-    {
-        if (function_exists('mb_strtolower'))
-            $word = mb_strtolower(self::_toUTF8($word, $encoding), 'UTF-8');
-        else
-            $word = strtolower($word);
-    }
-
      /**
      * Filters non-words out.
      *
@@ -401,10 +319,8 @@ class Erebot_Module_AZ_Game
         if (!self::_isWord($word))
             return NULL;
 
-        if ($this->_min !== NULL && strcmp($this->_min, $word) >= 0)
-            return NULL;
-
-        if ($this->_max !== NULL && strcmp($this->_max, $word) <= 0)
+        if (($this->_min !== NULL && strcmp($this->_min, $word) >= 0) ||
+            ($this->_max !== NULL && strcmp($this->_max, $word) <= 0))
             return NULL;
 
         $ok = FALSE;
@@ -440,8 +356,9 @@ class Erebot_Module_AZ_Game
      */
     public function proposeWord($word)
     {
-        self::_normalizeWord($word, NULL, 'UTF-8');
+        Erebot_Module_AZ_Utils::normalizeWord($word, NULL, 'UTF-8');
         $ok = $this->_isValidWord($word);
+
         if ($ok === NULL)
             return NULL;
 
