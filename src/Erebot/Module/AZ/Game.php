@@ -166,30 +166,6 @@ class Erebot_Module_AZ_Game
     }
 
     /**
-     * Filters non-words out.
-     *
-     * Only texts that passed this filtering step
-     * are considered as propositions for the game.
-     *
-     * \param string $word
-     *      A possible "word" to test.
-     *
-     * \retval bool
-     *      TRUE if the given $word really is a word,
-     *      FALSE otherwise.
-     *
-     * \note
-     *      This method uses a rather broad definition
-     *      of what is a word. In particular, it accepts
-     *      sequences of (alphanumeric and other) characters
-     *      separated using a single space (eg. "Fo'o. B4-r_").
-     */
-    protected function _filterWord($word)
-    {
-        return (bool) preg_match(self::WORD_FILTER, $word);
-    }
-
-    /**
      * Loads a list of words.
      *
      * \param string $list
@@ -222,71 +198,16 @@ class Erebot_Module_AZ_Game
         $encoding = 'ASCII';
         if (isset($wordlist[0][0]) && $wordlist[0][0] == '#')
             $encoding = trim(substr(array_shift($wordlist), 1));
-        $encodingArray = array_fill(0, count($wordlist), $encoding);
 
-        $wordlist = array_map(
-            array($this, '_toUTF8'),
+        $ok = array_walk(
             $wordlist,
-            $encodingArray
+            array('self', '_normalizeWord'),
+            $encoding
         );
-        $wordlist = array_map('strtolower', $wordlist);
-        $wordlist = array_filter($wordlist, array($this, '_filterWord'));
+        if (!$ok)
+            throw new Erebot_Module_AZ_UnreadableFileException($file);
+        $wordlist = array_filter($wordlist, array('self', '_isWord'));
         $this->_loadedLists[$list] = $wordlist;
-    }
-
-    /**
-     * Encodes some text in UTF-8.
-     *
-     * \param string $text
-     *      Text to encode in UTF-8.
-     *
-     * \param string $from
-     *      (optional) The text's current encoding.
-     *
-     * \retval string
-     *      The text, encoded in UTF-8 or returned
-     *      without any modification in case no
-     *      mechanism could be found to change
-     *      the text's encoding.
-     *
-     * \note
-     *      This method has been duplicated from Erebot_Utils
-     *      as we need a way to convert some random text to UTF-8
-     *      without depending on Erebot's inner workings.
-     *
-     * \warning
-     *      Contrary to Erebot's method, this method does not
-     *      throw an exception when the given text could not
-     *      be encoded in UTF-8 (because no mechanism could be
-     *      found to do so). Instead, the text is returned
-     *      unchanged.
-     */
-    static protected function _toUTF8($text, $from='iso-8859-1')
-    {
-        if (!strcasecmp($from, 'utf-8'))
-            return $text;
-
-        if (!strcasecmp($from, 'iso-8859-1') &&
-            function_exists('utf8_encode'))
-            return utf8_encode($text);
-
-        if (function_exists('iconv'))
-            return iconv($from, 'UTF-8', $text);
-
-        if (function_exists('recode'))
-            return recode($from.'..utf-8', $text);
-
-        if (function_exists('mb_convert_encoding'))
-            return mb_convert_encoding($text, 'UTF-8', $from);
-
-        if (function_exists('html_entity_decode'))
-            return html_entity_decode(
-                htmlentities($text, ENT_QUOTES, $from),
-                ENT_QUOTES,
-                'UTF-8'
-            );
-
-        return $text;
     }
 
     /**
@@ -350,7 +271,114 @@ class Erebot_Module_AZ_Game
     }
 
     /**
-     * Checks whether some text is a valid word.
+     * Encodes some text in UTF-8.
+     *
+     * \param string $text
+     *      Text to encode in UTF-8.
+     *
+     * \param string $from
+     *      (optional) The text's current encoding.
+     *
+     * \retval string
+     *      The text, encoded in UTF-8 or returned
+     *      without any modification in case no
+     *      mechanism could be found to change
+     *      the text's encoding.
+     *
+     * \note
+     *      This method has been duplicated from Erebot_Utils
+     *      as we need a way to convert some random text to UTF-8
+     *      without depending on Erebot's inner workings.
+     *
+     * \warning
+     *      Contrary to Erebot's method, this method does not
+     *      throw an exception when the given text could not
+     *      be encoded in UTF-8 (because no mechanism could be
+     *      found to do so). Instead, the text is returned
+     *      unchanged.
+     */
+    static protected function _toUTF8($text, $from='iso-8859-1')
+    {
+        if (!strcasecmp($from, 'utf-8'))
+            return $text;
+
+        if (!strcasecmp($from, 'iso-8859-1') &&
+            function_exists('utf8_encode'))
+            return utf8_encode($text);
+
+        if (function_exists('iconv'))
+            return iconv($from, 'UTF-8', $text);
+
+        if (function_exists('recode'))
+            return recode($from.'..utf-8', $text);
+
+        if (function_exists('mb_convert_encoding'))
+            return mb_convert_encoding($text, 'UTF-8', $from);
+
+        if (function_exists('html_entity_decode'))
+            return html_entity_decode(
+                htmlentities($text, ENT_QUOTES, $from),
+                ENT_QUOTES,
+                'UTF-8'
+            );
+
+        return $text;
+    }
+
+    /**
+     * Normalizes a word.
+     *
+     * \param string $word
+     *      Word to normalize.
+     *
+     * \param mixed $key
+     *      This parameter is ignored.
+     *
+     * \param string $encoding
+     *      Encoding of the word.
+     *
+     * \warning
+     *      $word is modified in place.
+     *
+     * \note
+     *      This method's prototype is compatible
+     *      with array_filter()'s expectations.
+     */
+    static protected function _normalizeWord(&$word, $key, $encoding)
+    {
+        if (function_exists('mb_strtolower'))
+            $word = mb_strtolower(self::_toUTF8($word, $encoding), 'UTF-8');
+        else
+            $word = strtolower($word);
+    }
+
+     /**
+     * Filters non-words out.
+     *
+     * Only texts that passed this filtering step
+     * are considered as propositions for the game.
+     *
+     * \param string $word
+     *      A possible "word" to test.
+     *
+     * \retval bool
+     *      TRUE if the given $word really is a word,
+     *      FALSE otherwise.
+     *
+     * \note
+     *      This method uses a rather broad definition
+     *      of what is a word. In particular, it accepts
+     *      sequences of (alphanumeric and other) characters
+     *      separated using a single space (eg. "Fo'o. B4-r_").
+     */
+    static protected function _isWord($word)
+    {
+        return (bool) preg_match(self::WORD_FILTER, $word);
+    }
+
+    /**
+     * Checks whether some text is a valid word
+     * for the current game.
      *
      * This method checks whether the given text
      * contains something that is recognized as
@@ -368,9 +396,9 @@ class Erebot_Module_AZ_Game
      *      of a currently active wordlist.
      *      Otherwise, FALSE is returned.
      */
-    protected function _checkWord($word)
+    protected function _isValidWord($word)
     {
-        if (!preg_match(self::WORD_FILTER, $word))
+        if (!self::_isWord($word))
             return NULL;
 
         if ($this->_min !== NULL && strcmp($this->_min, $word) >= 0)
@@ -412,9 +440,8 @@ class Erebot_Module_AZ_Game
      */
     public function proposeWord($word)
     {
-        $word = strtolower($word);
-        $ok = $this->_checkWord($word);
-
+        self::_normalizeWord($word, NULL, 'UTF-8');
+        $ok = $this->_isValidWord($word);
         if ($ok === NULL)
             return NULL;
 

@@ -39,7 +39,7 @@ extends Erebot_Module_AZ_Game
 
     public function setTarget($target)
     {
-        if (!$this->_checkWord($target)) {
+        if (!$this->_isValidWord($target)) {
             throw new Exception("Not a valid target");
         }
         $this->_target = $target;
