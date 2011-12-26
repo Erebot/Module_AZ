@@ -245,7 +245,8 @@ class Erebot_Module_AZ_Game
      */
     public function proposeWord($word)
     {
-        Erebot_Module_Wordlists_Wordlist::normalizeWord($word, NULL, 'UTF-8');
+        Erebot_Module_Wordlists_Wordlist::normalizeWord(
+            $word, NULL, array('UTF-8', NULL));
         $ok = $this->_isValidWord($word);
 
         if ($ok === NULL)

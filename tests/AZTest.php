@@ -19,22 +19,10 @@
 class AZ_TestHelper
 extends Erebot_Module_AZ_Game
 {
-    public function __construct($lists)
+    public function __construct($module, $lists)
     {
-        parent::__construct($lists);
+        parent::__construct($module, $lists);
         $this->_target = 'foo';
-    }
-
-    static public function getAvailableLists()
-    {
-        self::$_wordlistsDir = dirname(__FILE__).'/wordlists/';
-        return parent::getAvailableLists();
-    }
-
-    static public function reset()
-    {
-        self::$_wordlistsDir = NULL;
-        self::$_availableLists = NULL;
     }
 
     public function setTarget($target)
@@ -47,15 +35,26 @@ extends Erebot_Module_AZ_Game
 }
 
 class   AZTest
-extends PHPUnit_Framework_TestCase
+extends Erebot_Testenv_Module_TestCase
 {
+    public function setUp()
+    {
+        $this->_module = new Erebot_Module_Wordlists(NULL);
+        $this->_module->registerPath(
+            dirname(__FILE__) . DIRECTORY_SEPARATOR .
+            "wordlists"
+        );
+        parent::setUp();
+        $this->_module->reload($this->_connection, 0);
+    }
+
     public function testAvailableLists()
     {
         $this->assertEquals(
-            array('accentuated', 'test', 'twowords'),
-            AZ_TestHelper::getAvailableLists()
+            array('test', 'twowords'),
+            Erebot_Module_Wordlists::getAvailableLists()
         );
-        $az = new AZ_TestHelper(array('test'));
+        $az = new AZ_TestHelper($this->_module, array('test'));
         $this->assertEquals(array('test'), $az->getLoadedListsNames());
         unset($az);
     }
@@ -65,12 +64,12 @@ extends PHPUnit_Framework_TestCase
      */
     public function testInsufficientNumberOfWords()
     {
-        $az = new AZ_TestHelper(array('twowords'));
+        $az = new AZ_TestHelper($this->_module, array('twowords'));
     }
 
     public function testWordProposal()
     {
-        $az = new AZ_TestHelper(array('test'));
+        $az = new AZ_TestHelper($this->_module, array('test'));
         $this->assertEquals('foo',  $az->getTarget());
         $this->assertEquals(0,      $az->getAttemptsCount());
         $this->assertEquals(0,      $az->getInvalidWordsCount());
@@ -108,16 +107,12 @@ extends PHPUnit_Framework_TestCase
 
     public function testUnreadableWordlist()
     {
-        $az = new AZ_TestHelper(array('test', 'does not exist'));
+        $az = new AZ_TestHelper(
+            $this->_module,
+            array('test', 'does not exist')
+        );
+        $this->assertEquals(array('test'), $az->getLoadedListsNames());
         unset($az);
-    }
-
-    public function testAccentuatedWords()
-    {
-        $az = new AZ_TestHelper(array('accentuated'));
-        // "LATIN SMALL LETTER C WITH CEDILLA" in UTF-8.
-        $az->setTarget("\xC3\xA7");
-        $this->assertEquals(TRUE, $az->proposeWord("\xC3\xA7"));
     }
 }
 
