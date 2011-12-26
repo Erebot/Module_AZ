@@ -24,34 +24,10 @@
  */
 class Erebot_Module_AZ_Game
 {
-    /// Pattern used to recognize (composed) "words".
-    const WORD_FILTER = '@^
-        [\\p{N}\\p{L}\\-\\.\\(\\)_\']+          # A "word", ie. a sequence of
-                                                # Unicode letters/numbers plus
-                                                # some additional characters.
-        (?:\\ [\\p{N}\\p{L}\\-\\.\\(\\)_\']+)?  # Another such word.
-        $@ux';
-
-    /// Path to the directory where wordlists are kept.
-    static protected $_wordlistsDir = NULL;
-
-    /// List of available wordlists.
-    static protected $_availableLists = NULL;
-
-    /**
-     * \brief
-     *      Maps each currently active list's name
-     *      to a list of its words.
-     *
-     * That is, it maps each of the wordlists given to
-     * this class' constructor to the words it contains.
-     */
-    protected $_loadedLists;
-
-    /// First word in the currently selected wordlists.
+    /// Lower part of the current range (NULL if undefined).
     protected $_min;
 
-    /// Last word in the currently selected wordlists.
+    /// Higher part of the current range (NULL if undefined).
     protected $_max;
 
     /// The actual word that contestants must guess.
@@ -62,6 +38,12 @@ class Erebot_Module_AZ_Game
 
     /// Number of invalid words that were proposed (that passed WORD_FILTER).
     protected $_invalidWords;
+
+    protected $_lists;
+
+    protected $_collator;
+
+    protected $_wordsCount;
 
     /**
      * Creates a new instance of the game.
@@ -78,136 +60,62 @@ class Erebot_Module_AZ_Game
      *      Invalid list names and lists whose content
      *      cannot be parsed are silently ignored.
      */
-    public function __construct($lists)
+    public function __construct(Erebot_Module_Wordlists $wordlists, $lists)
     {
-        self::getAvailableLists();
-        $wordlist = array();
-        $this->_loadedLists = array();
+        $count = 0;
+        $this->_collator = NULL;
         foreach ($lists as $list) {
             try {
-                $this->loadWordlist($list);
-                $wordlist = array_merge($wordlist, $this->_loadedLists[$list]);
+                $wordlist       = $wordlists->getList($list);
+                $collator       = $wordlist->getMetadata('locale');
+
+                if ($this->_collator !== NULL) {
+                    if ($this->_collator->getLocale(Locale::ACTUAL_LOCALE) !=
+                        $collator->getLocale(Locale::ACTUAL_LOCALE)) {
+                        throw new Erebot_Module_Wordlists_IncompatibleException(
+                            "Incompatible wordlists"
+                        );
+                    }
+                }
+                else
+                    $this->_collator = $collator;
+
+                $count         += count($wordlist);
+                $this->_lists[] = $wordlist;
             }
-            catch (Erebot_Module_AZ_BadListNameException $e) {
+            catch (Erebot_Module_Wordlists_BadListNameException $e) {
             }
-            catch (Erebot_Module_AZ_UnreadableFileException $e) {
+            catch (Erebot_Module_Wordlists_UnreadableFileException $e) {
             }
         }
 
-        $wordlist = array_unique($wordlist);
-        if (count($wordlist) < 3)
+        if ($count < 3)
             throw new Erebot_Module_AZ_NotEnoughWordsException();
+
+        $target = rand(0, $count - 1);
+        foreach ($this->_lists as $list) {
+            $size = count($list);
+
+            if ($target >= $size) {
+                $target -= $size;
+                continue;
+            }
+
+            $target = $list[$target];
+            break;
+        }
 
         $this->_attempts     =
         $this->_invalidWords = 0;
         $this->_min          =
         $this->_max          = NULL;
-        $this->_target       = $wordlist[array_rand($wordlist)];
+        $this->_wordsCount   = $count;
+        $this->_target       = $target;
     }
 
     /// Destructor.
     public function __destruct()
     {
-        unset($this->_loadedLists);
-    }
-
-    /**
-     * Returns the names of available lists.
-     *
-     * \retval list
-     *      The names of all the lists available.
-     */
-    static public function getAvailableLists()
-    {
-        if (self::$_wordlistsDir === NULL) {
-            $base = '@data_dir@';
-            // Running from the repository.
-            if ($base == '@'.'data_dir'.'@') {
-                $parts = array(
-                    dirname(dirname(dirname(dirname(dirname(__FILE__))))),
-                    'vendor',
-                    'Erebot_Module_Wordlists',
-                    'data',
-                );
-            }
-            else {
-                $parts = array(
-                    dirname($base . DIRECTORY_SEPARATOR),
-                    'Erebot_Module_Wordlists',
-                );
-            }
-            self::$_wordlistsDir = implode(DIRECTORY_SEPARATOR, $parts);
-        }
-
-        if (self::$_availableLists === NULL) {
-            self::$_availableLists = array();
-            $files = scandir(self::$_wordlistsDir);
-            foreach ($files as $file) {
-                if (substr($file, -4) == '.txt')
-                    self::$_availableLists[] = substr($file, 0, -4);
-            }
-        }
-        return self::$_availableLists;
-    }
-
-    /**
-     * Returns a list of currently active wordlists.
-     *
-     * An active wordlist is a list whose name was
-     * passed to this class' constructor, is valid
-     * and was successfully parsed.
-     *
-     * \retval list
-     *      The names of currently active wordlists.
-     */
-    public function getLoadedListsNames()
-    {
-        return array_keys($this->_loadedLists);
-    }
-
-    /**
-     * Loads a list of words.
-     *
-     * \param string $list
-     *      Name of the list to load.
-     *
-     * \throw Erebot_Module_AZ_BadListNameException
-     *      The given $list is not a valid list name.
-     *
-     * \throw Erebot_Module_AZ_UnreadableFileException
-     *      The content of the given $list could not
-     *      be parsed.
-     */
-    protected function loadWordlist($list)
-    {
-        if (isset($this->_loadedLists[$list]))
-            return;
-
-        if (!in_array($list, self::$_availableLists, TRUE))
-            throw new Erebot_Module_AZ_BadListNameException($list);
-
-        $file = self::$_wordlistsDir.DIRECTORY_SEPARATOR.$list.'.txt';
-        if (!is_readable($file))
-            throw new Erebot_Module_AZ_UnreadableFileException($file);
-
-        $wordlist = file($file);
-        if ($wordlist === FALSE)
-            throw new Erebot_Module_AZ_UnreadableFileException($file);
-        $wordlist = array_map('trim', $wordlist);
-
-        $encoding = 'ASCII';
-        if (isset($wordlist[0][0]) && $wordlist[0][0] == '#')
-            $encoding = trim(substr(array_shift($wordlist), 1));
-
-        $ok = array_walk(
-            $wordlist,
-            array('Erebot_Module_AZ_Utils', 'normalizeWord'),
-            $encoding
-        );
-        if (!$ok)
-            throw new Erebot_Module_AZ_UnreadableFileException($file);
-        $wordlist = array_filter($wordlist, array('self', '_isWord'));
-        $this->_loadedLists[$list] = $wordlist;
     }
 
     /**
@@ -270,28 +178,9 @@ class Erebot_Module_AZ_Game
         return $this->_invalidWords;
     }
 
-     /**
-     * Filters non-words out.
-     *
-     * Only texts that passed this filtering step
-     * are considered as propositions for the game.
-     *
-     * \param string $word
-     *      A possible "word" to test.
-     *
-     * \retval bool
-     *      TRUE if the given $word really is a word,
-     *      FALSE otherwise.
-     *
-     * \note
-     *      This method uses a rather broad definition
-     *      of what is a word. In particular, it accepts
-     *      sequences of (alphanumeric and other) characters
-     *      separated using a single space (eg. "Fo'o. B4-r_").
-     */
-    static protected function _isWord($word)
+    public function getWordsCount()
     {
-        return (bool) preg_match(self::WORD_FILTER, $word);
+        return $this->_wordsCount;
     }
 
     /**
@@ -316,16 +205,16 @@ class Erebot_Module_AZ_Game
      */
     protected function _isValidWord($word)
     {
-        if (!self::_isWord($word))
+        if (!Erebot_Module_Wordlists_Wordlist::isWord($word))
             return NULL;
 
-        if (($this->_min !== NULL && strcmp($this->_min, $word) >= 0) ||
-            ($this->_max !== NULL && strcmp($this->_max, $word) <= 0))
+        if ($this->_compareWords($this->_min, $word) >= 0 ||
+            $this->_compareWords($word, $this->_max) >= 0)
             return NULL;
 
         $ok = FALSE;
-        foreach ($this->_loadedLists as &$list) {
-            if (in_array($word, $list)) {
+        foreach ($this->_lists as $list) {
+            if (isset($list[$word])) {
                 $ok = TRUE;
                 break;
             }
@@ -356,7 +245,7 @@ class Erebot_Module_AZ_Game
      */
     public function proposeWord($word)
     {
-        Erebot_Module_AZ_Utils::normalizeWord($word, NULL, 'UTF-8');
+        Erebot_Module_Wordlists_Wordlist::normalizeWord($word, NULL, 'UTF-8');
         $ok = $this->_isValidWord($word);
 
         if ($ok === NULL)
@@ -368,7 +257,7 @@ class Erebot_Module_AZ_Game
         }
 
         $this->_attempts++;
-        $cmp = strcmp($this->_target, $word);
+        $cmp = $this->_compareWords($this->_target, $word);
         if (!$cmp)
             return TRUE;
 
@@ -378,6 +267,24 @@ class Erebot_Module_AZ_Game
             $this->_min = $word;
 
         return FALSE;
+    }
+
+    public function getLoadedListsNames()
+    {
+        $names = array();
+        foreach ($this->_lists as $list) {
+            $names[] = $list->getName();
+        }
+        return $names;
+    }
+
+    protected function _compareWords($a, $b)
+    {
+        if ($a === NULL)
+            return -1;
+        else if ($b === NULL)
+            return -1;
+        return $this->_collator->compare($a, $b);
     }
 }
 

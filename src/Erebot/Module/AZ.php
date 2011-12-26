@@ -48,8 +48,6 @@ extends Erebot_Module_Base
      * \note
      *      See the documentation on individual RELOAD_*
      *      constants for a list of possible values.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function _reload($flags)
     {
@@ -94,7 +92,7 @@ extends Erebot_Module_Base
                 new Erebot_Event_Match_All(
                     new Erebot_Event_Match_InstanceOf('Erebot_Event_ChanText'),
                     new Erebot_Event_Match_TextRegex(
-                        Erebot_Module_AZ_Game::WORD_FILTER
+                        Erebot_Module_Wordlists_Wordlist::WORD_FILTER
                     )
                 )
             );
@@ -136,7 +134,7 @@ extends Erebot_Module_Base
                 'The following wordlists are available: '.
                 '<for from="lists" item="list">'.
                 '<b><var name="list"/></b></for>.',
-                array('lists' => Erebot_Module_AZ_Game::getAvailableLists())
+                array('lists' => Erebot_Module_Wordlists::getAvailableLists())
             );
             $this->sendMessage($chan, $msg);
             return $event->preventDefault(TRUE);
@@ -189,14 +187,17 @@ extends Erebot_Module_Base
         }
 
         $lists = $text->getTokens(1);
-        if ($lists === NULL)
+        if ($lists === NULL) {
             $lists = $this->parseString(
                 'default_lists',
-                implode(' ', Erebot_Module_AZ_Game::getAvailableLists())
+                implode(' ', Erebot_Module_Wordlists::getAvailableLists())
             );
+        }
+
         $lists = explode(' ', $lists);
         try {
-            $game = new Erebot_Module_AZ_Game($lists);
+            $words = $this->_connection->getModule('Erebot_Module_Wordlists');
+            $game = new Erebot_Module_AZ_Game($words, $lists);
         }
         catch (Erebot_Module_AZ_NotEnoughWordsException $e) {
             $msg = $fmt->_(
@@ -211,10 +212,12 @@ extends Erebot_Module_Base
         $msg = $fmt->_(
             'A new <b>A-Z</b> game has been started on '.
             '<b><var name="chan"/></b> using the following wordlists: '.
-            '<for from="lists" item="list"><b><var name="list"/></b></for>.',
+            '<for from="lists" item="list"><b><var name="list"/></b></for> '.
+            '(<var name="wordsCount"/> words).',
             array(
-                'chan' => $chan,
-                'lists' => $game->getLoadedListsNames(),
+                'chan'          => $chan,
+                'lists'         => $game->getLoadedListsNames(),
+                'wordsCount'    => $game->getWordsCount(),
             )
         );
         $this->sendMessage($chan, $msg);
