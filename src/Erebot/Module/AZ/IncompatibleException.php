@@ -18,10 +18,10 @@
 
 /**
  *  \brief
- *      Raised when an invalid name is passed
- *      for a wordlist.
+ *      Raised when an attempt is made to mix
+ *      words from two incompatible wordlists.
  */
-class   Erebot_Module_AZ_BadListNameException
+class   Erebot_Module_AZ_IncompatibleException
 extends Erebot_Module_AZ_Exception
 {
 }
