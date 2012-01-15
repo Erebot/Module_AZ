@@ -1,0 +1,175 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Usage &mdash; Erebot_Module_AZ v0.1.1snapshot150 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.1snapshot150',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="Search within Erebot_Module_AZ v0.1.1snapshot150 documentation"
+          href="_static/opensearch.xml"/>
+    <link rel="top" title="Erebot_Module_AZ v0.1.1snapshot150 documentation" href="index.html" />
+    <link rel="prev" title="Configuration" href="Configuration.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="Configuration.html" title="Configuration"
+             accesskey="P">previous</a></li>
+        <li><a href="index.html">Erebot_Module_AZ v0.1.1snapshot150 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <blockquote>
+<div></div></blockquote>
+<div class="section" id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+<p>This section assumes default values are used for all triggers.
+Please refer to <a class="reference internal" href="Configuration.html#configuration-options"><em>configuration options</em></a>
+for more information on how to customize triggers.</p>
+<div class="section" id="provided-commands">
+<h2>Provided commands<a class="headerlink" href="#provided-commands" title="Permalink to this headline">¶</a></h2>
+<p>This module provides the following commands:</p>
+<table border="1" class="docutils">
+<caption>Commands provided by Erebot_Module_AZ</caption>
+<colgroup>
+<col width="44%" />
+<col width="56%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Command</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><tt class="samp docutils literal"><span class="pre">!az</span> <em><span class="pre">wordlists...</span></em></tt></td>
+<td>Starts a new game using the given
+<tt class="docutils literal"><span class="pre">wordlists</span></tt> or the default wordlist
+if none is given.
+Once the game starts, you may propose
+words directly to the bot.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">!az</span> <span class="pre">list</span></tt> or
+<tt class="docutils literal"><span class="pre">!az</span> <span class="pre">lists</span></tt></td>
+<td>Displays a list of available
+wordlists.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">!az</span> <span class="pre">cancel</span></tt> or
+<tt class="docutils literal"><span class="pre">!az</span> <span class="pre">end</span></tt> or
+<tt class="docutils literal"><span class="pre">!az</span> <span class="pre">stop</span></tt></td>
+<td>Stops the current game.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>The listing below shows a game (in french) played using Pokemon names
+from the first generation as the dictionary.</p>
+<div class="highlight-irc"><div class="highlight"><pre><span class="cp">10:51:13 </span><span class="nt">&lt;@Clicky&gt; </span>!az list
+<span class="cp">10:51:13 </span><span class="nt">&lt; Erebot&gt; </span>Les listes de mots suivantes sont disponibles : english, french, haddock, pkmn1en &amp; pkmn1fr.
+
+<span class="cp">11:06:19 </span><span class="nt">&lt;@Clicky&gt; </span>!az pkmn1fr
+<span class="cp">11:06:19 </span><span class="nt">&lt; Erebot&gt; </span>Une nouvelle partie de A-Z commence sur #erebot avec les listes suivantes : pkmn1fr (151 mots).
+<span class="cp">11:06:40 </span><span class="nt">&lt;@foobar&gt; </span>ah
+<span class="cp">11:06:40 </span><span class="nt">&lt; Erebot&gt; </span>ah n&#39;existe pas ou n&#39;est pas admissible pour ce jeu.
+<span class="cp">11:06:42 </span><span class="nt">&lt;@foobar&gt; </span>pikachu
+<span class="cp">11:06:42 </span><span class="nt">&lt; Erebot&gt; </span>Nouvel intervalle : ??? -- pikachu
+<span class="cp">11:06:47 </span><span class="nt">&lt;@foobar&gt; </span>evoli
+<span class="cp">11:06:47 </span><span class="nt">&lt; Erebot&gt; </span>Nouvel intervalle : evoli -- pikachu
+<span class="cp">11:06:51 </span><span class="nt">&lt;@foobar&gt; </span>lamantine
+<span class="cp">11:06:51 </span><span class="nt">&lt; Erebot&gt; </span>Nouvel intervalle : evoli -- lamantine
+<span class="cp">11:06:54 </span><span class="nt">&lt;@foobar&gt; </span>feunard
+<span class="cp">11:06:54 </span><span class="nt">&lt; Erebot&gt; </span>Nouvel intervalle : feunard -- lamantine
+<span class="cp">11:06:58 </span><span class="nt">&lt;@foobar&gt; </span>grodoudou
+<span class="cp">11:06:58 </span><span class="nt">&lt; Erebot&gt; </span>Nouvel intervalle : grodoudou -- lamantine
+<span class="cp">11:07:07 </span><span class="nt">&lt;@foobar&gt; </span>insecateur
+<span class="cp">11:07:07 </span><span class="nt">&lt; Erebot&gt; </span>Nouvel intervalle : grodoudou -- insecateur
+<span class="cp">11:07:11 </span><span class="nt">&lt;@foobar&gt; </span>grolem
+<span class="cp">11:07:11 </span><span class="nt">&lt; Erebot&gt; </span>Nouvel intervalle : grolem -- insecateur
+<span class="cp">11:08:49 </span><span class="nt">&lt;@foobar&gt; </span>herbizarre
+<span class="cp">11:08:49 </span><span class="nt">&lt; Erebot&gt; </span>BINGO ! La réponse était effectivement herbizarre. Félicitations foobar !
+<span class="cp">11:08:49 </span><span class="nt">&lt; Erebot&gt; </span>La réponse a été trouvée après 8 essais et 1 mots incorrects.
+
+<span class="cp">14:50:53 </span><span class="nt">&lt;@Clicky&gt; </span>!az pkmn1fr
+<span class="cp">14:50:53 </span><span class="nt">&lt; Erebot&gt; </span>Une nouvelle partie de A-Z commence sur #erebot avec les listes suivantes : pkmn1fr (151 mots).
+<span class="cp">14:50:56 </span><span class="nt">&lt;@Clicky&gt; </span>!az cancel
+<span class="cp">14:50:56 </span><span class="nt">&lt; Erebot&gt; </span>La partie de A-Z a été arrêtée après 0 essais et 0 mots incorrects. La réponse était roucoups.
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Usage</a><ul>
+<li><a class="reference internal" href="#provided-commands">Provided commands</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Configuration.html"
+                        title="previous chapter">Configuration</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="Configuration.html" title="Configuration"
+             >previous</a></li>
+        <li><a href="index.html">Erebot_Module_AZ v0.1.1snapshot150 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Erebot.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>
