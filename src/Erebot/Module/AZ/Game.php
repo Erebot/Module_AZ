@@ -39,14 +39,21 @@ class Erebot_Module_AZ_Game
     /// Number of invalid words that were proposed (that passed WORD_FILTER).
     protected $_invalidWords;
 
+    /// Lists of words used in this game.
     protected $_lists;
 
+    /// A collator, providing case-insensitive comparison.
     protected $_collator;
 
+    /// Number of words in the currently loaded wordlists.
     protected $_wordsCount;
 
     /**
      * Creates a new instance of the game.
+     *
+     * \param Erebot_Module_Wordlists $wordlists
+     *      An instance of Erebot_Module_Wordlists, the module
+     *      responsible for providing access to wordlists.
      *
      * \param array $lists
      *      A list with the name of the dictionaries
@@ -178,6 +185,13 @@ class Erebot_Module_AZ_Game
         return $this->_invalidWords;
     }
 
+    /**
+     * Returns the number of words contained
+     * in the currently loaded wordlists.
+     *
+     * \retval int
+     *      Number of words in the current lists.
+     */
     public function getWordsCount()
     {
         return $this->_wordsCount;
@@ -273,6 +287,14 @@ class Erebot_Module_AZ_Game
         return FALSE;
     }
 
+    /**
+     * Returns the names of all currently
+     * loaded wordlists.
+     *
+     * \retval array
+     *      A list with the names of all
+     *      currently loaded wordlists.
+     */
     public function getLoadedListsNames()
     {
         $names = array();
@@ -282,6 +304,24 @@ class Erebot_Module_AZ_Game
         return $names;
     }
 
+    /**
+     * Compare two words in a case-insensitive
+     * fashion.
+     *
+     * \param mixed $a
+     *      First word to use in the comparison.
+     *      Can be NULL if unavailable.
+     *
+     * \param mixed $b
+     *      Second word to use in the comparison.
+     *      Can be NULL if unavailable.
+     *
+     * \retval int
+     *      Returns < 0 if $a is less than $b;
+     *      > 0 if $a is greater than $b, and
+     *      0 if they are equal. The comparison
+     *      is case-insentive.
+     */
     protected function _compareWords($a, $b)
     {
         if ($a === NULL)
