@@ -75,8 +75,8 @@ extends Erebot_Module_Base
                 );
             }
 
-            $this->_handlers['create']   =  new Erebot_EventHandler(
-                new Erebot_Callable(array($this, 'handleCreate')),
+            $this->_handlers['game'] = new Erebot_EventHandler(
+                new Erebot_Callable(array($this, 'handleGame')),
                 new Erebot_Event_Match_All(
                     new Erebot_Event_Match_InstanceOf('Erebot_Event_ChanText'),
                     new Erebot_Event_Match_Any(
@@ -85,9 +85,9 @@ extends Erebot_Module_Base
                     )
                 )
             );
-            $this->_connection->addEventHandler($this->_handlers['create']);
+            $this->_connection->addEventHandler($this->_handlers['game']);
 
-            $this->_handlers['rawText']  =  new Erebot_EventHandler(
+            $this->_handlers['rawText'] = new Erebot_EventHandler(
                 new Erebot_Callable(array($this, 'handleRawText')),
                 new Erebot_Event_Match_All(
                     new Erebot_Event_Match_InstanceOf('Erebot_Event_ChanText'),
@@ -100,91 +100,109 @@ extends Erebot_Module_Base
         }
     }
 
-    /// \copydoc Erebot_Module_Base::_unload()
-    protected function _unload()
+    /**
+     * Handles a request to list available dictionaries.
+     *
+     * \param Erebot_Interface_Event_Base_ChanText $event
+     *      A message asking the bot to list available
+     *      dictionaries.
+     */
+    protected function _handleList(Erebot_Interface_Event_ChanText $event)
     {
+        $chan   = $event->getChan();
+        $fmt    = $this->getFormatter($chan);
+
+        $msg = $fmt->_(
+            'The following wordlists are available: '.
+            '<for from="lists" item="list">'.
+            '<b><var name="list"/></b></for>.',
+            array('lists' => Erebot_Module_Wordlists::getAvailableLists())
+        );
+        $this->sendMessage($chan, $msg);
+        return $event->preventDefault(TRUE);
     }
 
     /**
-     * Despite its name, this method can be used both to create
-     * or stop a game, or to list available dictionaries.
-     *
-     * \param Erebot_Interface_EventHandler $handler
-     *      Handler that triggered this event.
+     * Handles a request to display information about
+     * a currently running game.
      *
      * \param Erebot_Interface_Event_Base_ChanText $event
-     *      A message that asks the bot to either create a new game,
-     *      stop a running game or list available dictionaries.
+     *      A message asking the bot to display information
+     *      about a running game.
+     */
+    protected function _handleExisting(Erebot_Interface_Event_ChanText $event)
+    {
+        $chan   = $event->getChan();
+        $fmt    = $this->getFormatter($chan);
+        $game   = $this->_chans[$chan];
+
+        $min = $game->getMinimum();
+        if ($min === NULL)
+            $min = '???';
+
+        $max = $game->getMaximum();
+        if ($max === NULL)
+            $max = '???';
+
+        $msg = $fmt->_(
+            '<b>A-Z</b> (<for from="lists" item="list">'.
+            '<var name="list"/></for>). Current range: '.
+            '<b><var name="min"/></b> -- <b><var name="max"/></b> '.
+            '(<b><var name="attempts"/></b> attempts and '.
+            '<b><var name="bad"/></b> invalid words)',
+            array(
+                'attempts' => $game->getAttemptsCount(),
+                'bad' => $game->getInvalidWordsCount(),
+                'min' => $min,
+                'max' => $max,
+                'lists' => $game->getLoadedListsNames(),
+            )
+        );
+        $this->sendMessage($chan, $msg);
+        return $event->preventDefault(TRUE);
+    }
+
+    /**
+     * Handles a request to stop the game.
      *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * \param Erebot_Interface_Event_Base_ChanText $event
+     *      A message asking the bot to stop the game.
+     */
+    protected function _handleStop(Erebot_Interface_Event_ChanText $event)
+    {
+        $chan   = $event->getChan();
+        $fmt    = $this->getFormatter($chan);
+        $game   = $this->_chans[$chan];
+
+        $msg = $fmt->_(
+            'The <b>A-Z</b> game was stopped after '.
+            '<b><var name="attempts"/></b> attempts and <b><var '.
+            'name="bad"/></b> invalid words. The answer was <u>'.
+            '<var name="answer"/></u>.',
+            array(
+                'attempts' => $game->getAttemptsCount(),
+                'bad' => $game->getInvalidWordsCount(),
+                'answer' => $game->getTarget(),
+            )
+        );
+        $this->sendMessage($chan, $msg);
+        unset($this->_chans[$chan]);
+        return $event->preventDefault(TRUE);
+    }
+
+    /**
+     * Handles a request to create a new game.
+     *
+     * \param Erebot_Interface_Event_Base_ChanText $event
+     *      A message asking the bot to create a new game.
+     *
      * @SuppressWarnings(PHPMD.UnusedLocalVariable)
      */
-    public function handleCreate(
-        Erebot_Interface_EventHandler   $handler,
-        Erebot_Interface_Event_ChanText $event
-    )
+    protected function _handleCreate(Erebot_Interface_Event_ChanText $event)
     {
         $chan       = $event->getChan();
         $text       = $event->getText();
         $fmt        = $this->getFormatter($chan);
-
-        $cmds = array("list", "lists");
-        if (in_array(strtolower($text->getTokens(1)), $cmds)) {
-            $msg = $fmt->_(
-                'The following wordlists are available: '.
-                '<for from="lists" item="list">'.
-                '<b><var name="list"/></b></for>.',
-                array('lists' => Erebot_Module_Wordlists::getAvailableLists())
-            );
-            $this->sendMessage($chan, $msg);
-            return $event->preventDefault(TRUE);
-        }
-
-        if (isset($this->_chans[$chan])) {
-            $game =& $this->_chans[$chan];
-            $cmds = array("cancel", "end", "stop");
-            if (in_array(strtolower($text->getTokens(1)), $cmds)) {
-                $msg = $fmt->_(
-                    'The <b>A-Z</b> game was stopped after '.
-                    '<b><var name="attempts"/></b> attempts and <b><var '.
-                    'name="bad"/></b> invalid words. The answer was <u>'.
-                    '<var name="answer"/></u>.',
-                    array(
-                        'attempts' => $game->getAttemptsCount(),
-                        'bad' => $game->getInvalidWordsCount(),
-                        'answer' => $game->getTarget(),
-                    )
-                );
-                $this->sendMessage($chan, $msg);
-                $this->stopGame($chan);
-                return $event->preventDefault(TRUE);
-            }
-
-            $min = $game->getMinimum();
-            if ($min === NULL)
-                $min = '???';
-
-            $max = $game->getMaximum();
-            if ($max === NULL)
-                $max = '???';
-
-            $msg = $fmt->_(
-                '<b>A-Z</b> (<for from="lists" item="list">'.
-                '<var name="list"/></for>). Current range: '.
-                '<b><var name="min"/></b> -- <b><var name="max"/></b> '.
-                '(<b><var name="attempts"/></b> attempts and '.
-                '<b><var name="bad"/></b> invalid words)',
-                array(
-                    'attempts' => $game->getAttemptsCount(),
-                    'bad' => $game->getInvalidWordsCount(),
-                    'min' => $min,
-                    'max' => $max,
-                    'lists' => $game->getLoadedListsNames(),
-                )
-            );
-            $this->sendMessage($chan, $msg);
-            return $event->preventDefault(TRUE);
-        }
 
         $lists = $text->getTokens(1);
         if ($lists === NULL) {
@@ -225,16 +243,52 @@ extends Erebot_Module_Base
     }
 
     /**
-     * Stops a currently running game and frees
-     * all resources associated with it.
+     * This method can be used to create or stop a game,
+     * display information about a running game or to list
+     * available dictionaries.
      *
-     * \param string $chan
-     *      IRC channel on which the game
-     *      should be stopped.
+     * \param Erebot_Interface_EventHandler $handler
+     *      Handler that triggered this event.
+     *
+     * \param Erebot_Interface_Event_Base_ChanText $event
+     *      A message that asks the bot to create a new game,
+     *      stop a running game, display information about
+     *      a running game or list available dictionaries.
+     *    /**
+     * This method can be used to create or stop a game,
+     * display information about a running game or to list
+     * available dictionaries.
+     *
+     * \param Erebot_Interface_EventHandler $handler
+     *      Handler that triggered this event.
+     *
+     * \param Erebot_Interface_Event_Base_ChanText $event
+     *      A message that asks the bot to create a new game,
+     *      stop a running game, display information about
+     *      a running game or list available dictionaries.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    protected function stopGame($chan)
+    public function handleGame(
+        Erebot_Interface_EventHandler   $handler,
+        Erebot_Interface_Event_ChanText $event
+    )
     {
-        unset($this->_chans[$chan]);
+        $chan       = $event->getChan();
+        $text       = $event->getText();
+
+        $cmds = array("list", "lists");
+        if (in_array(strtolower($text->getTokens(1)), $cmds))
+            return $this->_handleList($event);
+
+        if (isset($this->_chans[$chan])) {
+            $cmds = array("cancel", "end", "stop");
+            if (in_array(strtolower($text->getTokens(1)), $cmds))
+                return $this->_handleStop($event);
+            return $this->_handleExisting($event);
+        }
+
+        return $this->_handleCreate($event);
     }
 
     /**
@@ -299,7 +353,7 @@ extends Erebot_Module_Base
                 )
             );
             $this->sendMessage($chan, $msg);
-            $this->stopGame($chan);
+            unset($this->_chans[$chan]);
             return $event->preventDefault(TRUE);
         }
 
