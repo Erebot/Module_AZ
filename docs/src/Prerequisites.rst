@@ -18,9 +18,9 @@ those.
 
 
 ..  _`Erebot_Module_Wordlists`:
-    http://fpoirotte.github.com/Erebot_Module_Wordlists/
+    http://erebot.github.com/Erebot_Module_Wordlists/
 ..  _`prerequisites`:
-    http://fpoirotte.github.com/Erebot/Prerequisites.html
+    http://erebot.github.com/Erebot/Prerequisites.html
 
 .. vim: ts=4 et
 
