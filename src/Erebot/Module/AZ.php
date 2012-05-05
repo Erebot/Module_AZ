@@ -112,11 +112,21 @@ extends Erebot_Module_Base
         $chan   = $event->getChan();
         $fmt    = $this->getFormatter($chan);
 
+        try {
+            $words = $this->_connection->getModule('Erebot_Module_Wordlists');
+            $availableLists = $words->getAvailableLists();
+        }
+        catch (Erebot_NotFoundException $e) {
+            $msg = $fmt->_('No list available.');
+            $this->sendMessage($chan, $msg);
+            return $event->preventDefault(TRUE);
+        }
+
         $msg = $fmt->_(
             'The following wordlists are available: '.
             '<for from="lists" item="list">'.
             '<b><var name="list"/></b></for>.',
-            array('lists' => Erebot_Module_Wordlists::getAvailableLists())
+            array('lists' => $availableLists)
         );
         $this->sendMessage($chan, $msg);
         return $event->preventDefault(TRUE);
@@ -204,17 +214,26 @@ extends Erebot_Module_Base
         $text       = $event->getText();
         $fmt        = $this->getFormatter($chan);
 
+        try {
+            $words = $this->_connection->getModule('Erebot_Module_Wordlists');
+            $availableLists = $words->getAvailableLists();
+        }
+        catch (Erebot_NotFoundException $e) {
+            $msg = $fmt->_('No list available.');
+            $this->sendMessage($chan, $msg);
+            return $event->preventDefault(TRUE);
+        }
+
         $lists = $text->getTokens(1);
         if ($lists === NULL) {
             $lists = $this->parseString(
                 'default_lists',
-                implode(' ', Erebot_Module_Wordlists::getAvailableLists())
+                implode(' ', $availableLists)
             );
         }
 
         $lists = explode(' ', $lists);
         try {
-            $words = $this->_connection->getModule('Erebot_Module_Wordlists');
             $game = new Erebot_Module_AZ_Game($words, $lists);
         }
         catch (Erebot_Module_AZ_NotEnoughWordsException $e) {
