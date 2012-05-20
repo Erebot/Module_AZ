@@ -1,3 +1,4 @@
+# locale: en_US
 Foo
 Baz
 Qux

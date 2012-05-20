@@ -59,6 +59,11 @@ class Erebot_Module_AZ_Game
      *      A list with the name of the dictionaries
      *      from which the target word may be selected.
      *
+     * \throw Erebot_Module_AZ_IncompatibleException
+     *      The given wordlists are not compatible with
+     *      each other (eg. they do not use the same
+     *      locales).
+     *
      * \throw Erebot_Module_AZ_NotEnoughWordsException
      *      There are not enough words in the selected
      *      lists.
@@ -74,12 +79,12 @@ class Erebot_Module_AZ_Game
         foreach ($lists as $list) {
             try {
                 $wordlist       = $wordlists->getList($list);
-                $collator       = $wordlist->getMetadata('locale');
+                $collator       = $wordlist->getCollator();
 
                 if ($this->_collator !== NULL) {
                     if ($this->_collator->getLocale(Locale::ACTUAL_LOCALE) !=
                         $collator->getLocale(Locale::ACTUAL_LOCALE)) {
-                        throw new Erebot_Module_Wordlists_IncompatibleException(
+                        throw new Erebot_Module_AZ_IncompatibleException(
                             "Incompatible wordlists"
                         );
                     }
@@ -213,9 +218,11 @@ class Erebot_Module_AZ_Game
      *      NULL is returned when the given $word
      *      does not look like a word (eg. "#$!@")
      *      or is outside the game's current range.
-     *      TRUE is returned when this word is part
-     *      of a currently active wordlist.
-     *      Otherwise, FALSE is returned.
+     *      FALSE is returned when this word is not
+     *      part of a currently active wordlist.
+     *      Otherwise, the word is returned the way
+     *      it is written in the list (which may
+     *      include case or accentuation variations).
      */
     protected function _isValidWord($word)
     {
@@ -226,15 +233,12 @@ class Erebot_Module_AZ_Game
             $this->_compareWords($word, $this->_max) >= 0)
             return NULL;
 
-        $ok = FALSE;
         foreach ($this->_lists as $list) {
-            if (isset($list[$word])) {
-                $ok = TRUE;
-                break;
-            }
+            $res = $list->findWord($word);
+            if ($res !== NULL)
+                return $res;
         }
-        unset($list);
-        return $ok;
+        return FALSE;
     }
 
     /**
@@ -259,31 +263,24 @@ class Erebot_Module_AZ_Game
      */
     public function proposeWord($word)
     {
-        Erebot_Module_Wordlists_Wordlist::normalizeWord(
-            $word,
-            NULL,
-            array('UTF-8', NULL)
-        );
-        $ok = $this->_isValidWord($word);
-
-        if ($ok === NULL)
+        $res = $this->_isValidWord($word);
+        if ($res === NULL)
             return NULL;
 
-        if (!$ok) {
+        if ($res === FALSE) {
             $this->_invalidWords++;
             throw new Erebot_Module_AZ_InvalidWordException($word);
         }
 
         $this->_attempts++;
-        $cmp = $this->_compareWords($this->_target, $word);
+        $cmp = $this->_compareWords($this->_target, $res);
         if (!$cmp)
             return TRUE;
 
         if ($cmp < 0)
-            $this->_max = $word;
+            $this->_max = $res;
         else
-            $this->_min = $word;
-
+            $this->_min = $res;
         return FALSE;
     }
 

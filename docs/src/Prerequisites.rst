@@ -10,7 +10,7 @@ to work properly:
 *   Erebot_API (some specific version may be required depending
     on this module's version)
 *   `Erebot_Module_Wordlists`_. This module provides several lists
-    of words that the AZ game may use.
+    of words that the AZ game may use and adds its own dependencies.
 *   The :pecl:`intl` extension.
 
 Erebot (core) adds its own set of `prerequisites`_ which usually superseed

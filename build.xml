@@ -12,5 +12,20 @@
         <exclude name="testenv/**/*.php"/>
     </fileset>
 
+    <target name="prepare_test" depends="test_lists" description=""/>
+
+    <target name="test_lists" description="">
+        <foreach param="wordlist" target="build_list">
+            <fileset dir="./" id="wordlists">
+                <include name="tests/wordlists/*.txt"/>
+            </fileset>
+        </foreach>
+    </target>
+
+    <target name="build_list" description="">
+        <exec command="php vendor/Erebot_Module_Wordlists/scripts/wordlist_converter ${wordlist}"
+            checkreturn="true" logoutput="true" passthru="true"/>
+    </target>
+
     <import file="buildenv/build.xml"/>
 </project>

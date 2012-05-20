@@ -1,4 +1,5 @@
 /data/i18n/*/LC_MESSAGES/*.mo
+/tests/wordlists/*.sqlite
 
 /docs/api
 /docs/coverage

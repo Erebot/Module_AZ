@@ -48,11 +48,17 @@ extends Erebot_Testenv_Module_TestCase
         $this->_module->reload($this->_connection, 0);
     }
 
+    // Mimic Erebot_Module_Base::parseString().
+    public function parseString($param, $default)
+    {
+        return $default;
+    }
+
     public function testAvailableLists()
     {
         $this->assertEquals(
             array('test', 'twowords'),
-            Erebot_Module_Wordlists::getAvailableLists()
+            $this->_module->getAvailableLists()
         );
         $az = new AZ_TestHelper($this->_module, array('test'));
         $this->assertEquals(array('test'), $az->getLoadedListsNames());

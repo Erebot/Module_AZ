@@ -244,6 +244,14 @@ extends Erebot_Module_Base
             $this->sendMessage($chan, $msg);
             return $event->preventDefault(TRUE);
         }
+        catch (Erebot_Module_AZ_IncompatibleException $e) {
+            $msg = $fmt->_(
+                'The given wordlists are not compatible '.
+                'with each other.'
+            );
+            $this->sendMessage($chan, $msg);
+            return $event->preventDefault(TRUE);
+        }
         $this->_chans[$chan] =& $game;
 
         $msg = $fmt->_(
