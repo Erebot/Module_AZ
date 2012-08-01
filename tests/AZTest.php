@@ -45,6 +45,10 @@ extends Erebot_Testenv_Module_TestCase
             "wordlists"
         );
         parent::setUp();
+        $this->_connection
+            ->expects($this->any())
+            ->method('getModule')
+            ->will($this->returnValue($this));
         $this->_module->reload($this->_connection, 0);
     }
 
@@ -52,6 +56,11 @@ extends Erebot_Testenv_Module_TestCase
     public function parseString($param, $default)
     {
         return $default;
+    }
+
+    // Mimic Erebot_Module_Helper::realRegisterHelpMethod().
+    public function realRegisterHelpMethod()
+    {
     }
 
     public function testAvailableLists()

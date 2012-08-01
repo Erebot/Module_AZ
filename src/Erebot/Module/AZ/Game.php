@@ -297,7 +297,7 @@ class Erebot_Module_AZ_Game
         $names = array();
         $nameType = Erebot_Module_Wordlists_Wordlist::METADATA_NAME;
         foreach ($this->_lists as $list) {
-            $names[] = $list->getMetadate($nameType);
+            $names[] = $list->getMetadata($nameType);
         }
         return $names;
     }
