@@ -1,0 +1,43 @@
+{
+    "name": "erebot/erebot-module-az",
+    "description": "Erebot module providing the AZ game",
+    "keywords": ["Erebot", "IRC", "bot", "module"],
+    "homepage": "https://github.com/Erebot/Erebot_Module_AZ",
+    "license": "GPL-3.0+",
+    "authors": [
+        {
+            "name": "François Poirotte",
+            "email": "clicky@erebot.net",
+            "role": "lead"
+        }
+    ],
+    "support": {
+        "email": "erebot@erebot.net",
+        "issues": "https://github.com/Erebot/Erebot_Module_AZ/issues",
+        "wiki": "http://erebot.github.com/Erebot_Module_AZ/",
+        "irc": "irc://irc.iiens.net/Erebot",
+        "source": "https://github.com/Erebot/Erebot_Module_AZ"
+    },
+    "repositories": [
+        {
+            "type": "pear",
+            "url": "http://pear.php.net"
+        }
+    ],
+    "require": {
+        "php": ">=5.2.2",
+        "erebot/erebot-api": "*",
+        "erebot/erebot-module-triggerregistry": "*",
+        "erebot/erebot-module-wordlists": "*"
+    },
+    "autoload": {
+        "psr-0": {
+            "Erebot": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    }
+}
