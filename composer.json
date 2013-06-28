@@ -1,5 +1,5 @@
 {
-    "name": "erebot/erebot-module-az",
+    "name": "erebot/az-module",
     "description": "Erebot module providing the AZ game",
     "keywords": ["Erebot", "IRC", "bot", "module"],
     "homepage": "https://github.com/Erebot/Erebot_Module_AZ",
@@ -20,15 +20,21 @@
     },
     "repositories": [
         {
-            "type": "pear",
-            "url": "http://pear.php.net"
+            "type": "composer",
+            "url": "http://packages.erebot.net"
         }
     ],
     "require": {
         "php": ">=5.2.2",
-        "erebot/erebot-api": "*",
-        "erebot/erebot-module-triggerregistry": "*",
-        "erebot/erebot-module-wordlists": "*"
+        "erebot/api": "dev-master",
+        "erebot/triggerregistry-module": "dev-master",
+        "erebot/wordlists-module": "dev-master",
+        "erebot/installers": "dev-master",
+        "erebot/generic-doc": "dev-master"
+    },
+    "require-dev": {
+        "erebot/buildenv": "dev-master",
+        "erebot/testenv": "dev-master"
     },
     "autoload": {
         "psr-0": {

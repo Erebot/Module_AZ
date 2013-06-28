@@ -27,5 +27,5 @@
             checkreturn="true" logoutput="true" passthru="true"/>
     </target>
 
-    <import file="buildenv/build.xml"/>
+    <import file="vendor/erebot/buildenv/build.xml"/>
 </project>
