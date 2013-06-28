@@ -1,5 +1,3 @@
-# Managed by composer.
-/bin
 /vendor
 
 /data/i18n/*/LC_MESSAGES/*.mo

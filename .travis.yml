@@ -22,7 +22,7 @@ before_script:
     - if [[ "$TRAVIS_PHP_VERSION" != "5.3.3" ]]; then php composer.phar install --dev; fi
 
 script:
-    - php bin/wordlist-converter tests/wordlists/test.txt
-    - php bin/wordlist-converter tests/wordlists/twowords.txt
+    - php vendor/bin/wordlist-converter tests/wordlists/test.txt
+    - php vendor/bin/wordlist-converter tests/wordlists/twowords.txt
     - phpunit --bootstrap vendor/erebot/testenv/bootstrap.php tests/
 
