@@ -13,7 +13,6 @@
 
     <fileset dir="tests/" id="tests">
         <include name="**/*.php"/>
-        <exclude name="testenv/**/*.php"/>
     </fileset>
 
     <target name="prepare_test" depends="test_lists" description=""/>
