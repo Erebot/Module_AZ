@@ -3,6 +3,10 @@
     <property name="qa.coverage.force" value="false"/>
     <property name="tagfiles" value="Erebot"/>
 
+    <fileset dir="." id="phar.files">
+        <exclude name="**"/>
+    </fileset>
+
     <fileset dir="src/" id="sources">
         <include name="**/*.php"/>
     </fileset>
@@ -23,7 +27,7 @@
     </target>
 
     <target name="build_list" description="">
-        <exec command="php vendor/Erebot_Module_Wordlists/scripts/wordlist_converter ${wordlist}"
+        <exec command="php vendor/bin/wordlist_converter ${wordlist}"
             checkreturn="true" logoutput="true" passthru="true"/>
     </target>
 
