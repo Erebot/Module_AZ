@@ -16,13 +16,13 @@
     along with Erebot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+namespace Erebot\Module\AZ;
+
 /**
  *  \brief
  *      Raised when an attempt is made to mix
  *      words from two incompatible wordlists.
  */
-class   Erebot_Module_AZ_IncompatibleException
-extends Erebot_Module_AZ_Exception
+class IncompatibleException extends \Erebot\Module\AZ\Exception
 {
 }
-

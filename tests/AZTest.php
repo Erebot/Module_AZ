@@ -17,20 +17,20 @@
 */
 
 class AZ_TestHelper
-extends Erebot_Module_AZ_Game
+extends \Erebot\Module\AZ\Game
 {
     public function __construct($module, $lists)
     {
         parent::__construct($module, $lists);
-        $this->_target = 'foo';
+        $this->target = 'foo';
     }
 
     public function setTarget($target)
     {
-        if (!$this->_isValidWord($target)) {
+        if (!$this->isValidWord($target)) {
             throw new Exception("Not a valid target");
         }
-        $this->_target = $target;
+        $this->target = $target;
     }
 }
 
@@ -39,28 +39,13 @@ extends Erebot_Testenv_Module_TestCase
 {
     public function setUp()
     {
-        $this->_module = new Erebot_Module_Wordlists(NULL);
+        $this->_module = new \Erebot\Module\Wordlists(NULL);
         $this->_module->registerPath(
             dirname(__FILE__) . DIRECTORY_SEPARATOR .
             "wordlists"
         );
         parent::setUp();
-        $this->_connection
-            ->expects($this->any())
-            ->method('getModule')
-            ->will($this->returnValue($this));
-        $this->_module->reload($this->_connection, 0);
-    }
-
-    // Mimic Erebot_Module_Base::parseString().
-    public function parseString($param, $default)
-    {
-        return $default;
-    }
-
-    // Mimic Erebot_Module_Helper::realRegisterHelpMethod().
-    public function realRegisterHelpMethod()
-    {
+        $this->_module->reloadModule($this->_connection, 0);
     }
 
     public function testAvailableLists()
@@ -75,7 +60,7 @@ extends Erebot_Testenv_Module_TestCase
     }
 
     /**
-     * @expectedException Erebot_Module_AZ_NotEnoughWordsException
+     * @expectedException \Erebot\Module\AZ\NotEnoughWordsException
      */
     public function testInsufficientNumberOfWords()
     {
@@ -94,9 +79,8 @@ extends Erebot_Testenv_Module_TestCase
 
         try {
             $az->proposeWord('uh');
-            $this->fail('Expected Erebot_Module_AZ_InvalidWordException');
-        }
-        catch (Erebot_Module_AZ_InvalidWordException $e) {
+            $this->fail('Expected \\Erebot\\Module\\AZ\\InvalidWordException');
+        } catch (\Erebot\Module\AZ\InvalidWordException $e) {
         }
 
         $this->assertEquals(FALSE,  $az->proposeWord('qux'));
@@ -130,4 +114,3 @@ extends Erebot_Testenv_Module_TestCase
         unset($az);
     }
 }
-

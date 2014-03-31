@@ -16,14 +16,12 @@
     along with Erebot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+namespace Erebot\Module\AZ;
+
 /**
- *  \brief
- *      Raised when an attempt is made to start
- *      a new game and there are not enough words
- *      in the selected wordlist.
+ * \brief
+ *      Raised when an invalid word is proposed.
  */
-class   Erebot_Module_AZ_NotEnoughWordsException
-extends Erebot_Module_AZ_Exception
+class InvalidWordException extends \Erebot\Module\AZ\Exception
 {
 }
-

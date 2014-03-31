@@ -16,55 +16,60 @@
     along with Erebot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+namespace Erebot\Module\AZ;
+
 /**
  *  \brief
  *      Actual A-Z game implementation.
  *
  *  This class does all the heavy work.
  */
-class Erebot_Module_AZ_Game
+class Game
 {
-    /// Lower part of the current range (NULL if undefined).
-    protected $_min;
+    /// Lower part of the current range (\b null if undefined).
+    protected $min;
 
-    /// Higher part of the current range (NULL if undefined).
-    protected $_max;
+    /// Higher part of the current range (\b null if undefined).
+    protected $max;
 
     /// The actual word that contestants must guess.
-    protected $_target;
+    protected $target;
 
     /// Number of attempts made to find the correct word.
-    protected $_attempts;
+    protected $attempts;
 
     /// Number of invalid words that were proposed (that passed WORD_FILTER).
-    protected $_invalidWords;
+    protected $invalidWords;
 
     /// Lists of words used in this game.
-    protected $_lists;
+    protected $lists;
 
     /// A collator, providing case-insensitive comparison.
-    protected $_collator;
+    protected $collator;
 
     /// Number of words in the currently loaded wordlists.
-    protected $_wordsCount;
+    protected $wordsCount;
+
+    /// Timestamp for game start.
+    protected $started;
 
     /**
      * Creates a new instance of the game.
      *
-     * \param Erebot_Module_Wordlists $wordlists
-     *      An instance of Erebot_Module_Wordlists, the module
+     * \param Erebot::Module::Wordlists::$wordlists
+     *      An instance of Erebot::Module::Wordlists, the module
      *      responsible for providing access to wordlists.
      *
      * \param array $lists
      *      A list with the name of the dictionaries
      *      from which the target word may be selected.
      *
-     * \throw Erebot_Module_AZ_IncompatibleException
+     * \throw Erebot::Module::AZ::IncompatibleException
      *      The given wordlists are not compatible with
      *      each other (eg. they do not use the same
      *      locales).
      *
-     * \throw Erebot_Module_AZ_NotEnoughWordsException
+     * \throw Erebot::Module::AZ::NotEnoughWordsException
      *      There are not enough words in the selected
      *      lists.
      *
@@ -72,40 +77,39 @@ class Erebot_Module_AZ_Game
      *      Invalid list names and lists whose content
      *      cannot be parsed are silently ignored.
      */
-    public function __construct(Erebot_Module_Wordlists $wordlists, $lists)
+    public function __construct(\Erebot\Module\Wordlists $wordlists, $lists)
     {
         $count = 0;
-        $this->_collator = NULL;
+        $this->collator = null;
         foreach ($lists as $list) {
             try {
                 $wordlist       = $wordlists->getList($list);
                 $collator       = $wordlist->getCollator();
 
-                if ($this->_collator !== NULL) {
-                    if ($this->_collator->getLocale(Locale::ACTUAL_LOCALE) !=
+                if ($this->collator !== null) {
+                    if ($this->collator->getLocale(Locale::ACTUAL_LOCALE) !=
                         $collator->getLocale(Locale::ACTUAL_LOCALE)) {
-                        throw new Erebot_Module_AZ_IncompatibleException(
+                        throw new \Erebot\Module\AZ\IncompatibleException(
                             "Incompatible wordlists"
                         );
                     }
+                } else {
+                    $this->collator = $collator;
                 }
-                else
-                    $this->_collator = $collator;
 
-                $count         += count($wordlist);
-                $this->_lists[] = $wordlist;
-            }
-            catch (Erebot_Module_Wordlists_BadListNameException $e) {
-            }
-            catch (Erebot_Module_Wordlists_UnreadableFileException $e) {
+                $count        += count($wordlist);
+                $this->lists[] = $wordlist;
+            } catch (\Erebot\Module\Wordlists\BadListNameException $e) {
+            } catch (\Erebot\Module\Wordlists\UnreadableFileException $e) {
             }
         }
 
-        if ($count < 3)
-            throw new Erebot_Module_AZ_NotEnoughWordsException();
+        if ($count < 3) {
+            throw new \Erebot\Module\AZ\NotEnoughWordsException();
+        }
 
         $target = rand(0, $count - 1);
-        foreach ($this->_lists as $list) {
+        foreach ($this->lists as $list) {
             $size = count($list);
 
             if ($target >= $size) {
@@ -117,12 +121,13 @@ class Erebot_Module_AZ_Game
             break;
         }
 
-        $this->_attempts     =
-        $this->_invalidWords = 0;
-        $this->_min          =
-        $this->_max          = NULL;
-        $this->_wordsCount   = $count;
-        $this->_target       = $target;
+        $this->attempts     =
+        $this->invalidWords = 0;
+        $this->min          =
+        $this->max          = null;
+        $this->wordsCount   = $count;
+        $this->target       = $target;
+        $this->started      = time();
     }
 
     /// Destructor.
@@ -139,7 +144,7 @@ class Erebot_Module_AZ_Game
      */
     public function getMinimum()
     {
-        return $this->_min;
+        return $this->min;
     }
 
     /**
@@ -151,7 +156,7 @@ class Erebot_Module_AZ_Game
      */
     public function getMaximum()
     {
-        return $this->_max;
+        return $this->max;
     }
 
     /**
@@ -162,7 +167,7 @@ class Erebot_Module_AZ_Game
      */
     public function getTarget()
     {
-        return $this->_target;
+        return $this->target;
     }
 
     /**
@@ -175,7 +180,7 @@ class Erebot_Module_AZ_Game
      */
     public function getAttemptsCount()
     {
-        return $this->_attempts;
+        return $this->attempts;
     }
 
     /**
@@ -187,7 +192,7 @@ class Erebot_Module_AZ_Game
      */
     public function getInvalidWordsCount()
     {
-        return $this->_invalidWords;
+        return $this->invalidWords;
     }
 
     /**
@@ -199,7 +204,7 @@ class Erebot_Module_AZ_Game
      */
     public function getWordsCount()
     {
-        return $this->_wordsCount;
+        return $this->wordsCount;
     }
 
     /**
@@ -215,30 +220,33 @@ class Erebot_Module_AZ_Game
      *      Some "word" to test.
      *
      * \retval mixed
-     *      NULL is returned when the given $word
+     *      \b null is returned when the given $word
      *      does not look like a word (eg. "#$!@")
      *      or is outside the game's current range.
-     *      FALSE is returned when this word is not
+     *      \b false is returned when this word is not
      *      part of a currently active wordlist.
      *      Otherwise, the word is returned the way
      *      it is written in the list (which may
      *      include case or accentuation variations).
      */
-    protected function _isValidWord($word)
+    protected function isValidWord($word)
     {
-        if (!Erebot_Module_Wordlists_Wordlist::isWord($word))
-            return NULL;
-
-        if ($this->_compareWords($this->_min, $word) >= 0 ||
-            $this->_compareWords($word, $this->_max) >= 0)
-            return NULL;
-
-        foreach ($this->_lists as $list) {
-            $res = $list->findWord($word);
-            if ($res !== NULL)
-                return $res;
+        if (!\Erebot\Module\Wordlists\Wordlist::isWord($word)) {
+            return null;
         }
-        return FALSE;
+
+        if ($this->compareWords($this->min, $word) >= 0 ||
+            $this->compareWords($word, $this->max) >= 0) {
+            return null;
+        }
+
+        foreach ($this->lists as $list) {
+            $res = $list->findWord($word);
+            if ($res !== null) {
+                return $res;
+            }
+        }
+        return false;
     }
 
     /**
@@ -248,14 +256,14 @@ class Erebot_Module_AZ_Game
      *      The word to propose.
      *
      * \retval mixed
-     *      NULL is returned when the given $word
+     *      \b null is returned when the given $word
      *      does not look like a word (eg. "#$!@")
      *      or is outside the game's current range.
-     *      TRUE is returned when the target word
+     *      \b true is returned when the target word
      *      has been proposed (we have a winner!).
-     *      Otherwise, FALSE is returned.
+     *      Otherwise, \b false is returned.
      *
-     * \throw Erebot_Module_AZ_InvalidWordException
+     * \throw Erebot::Module::AZ::InvalidWordException
      *      The given $word may have looked like
      *      a valid word at first, but really isn't.
      *      Such words increase the "invalid words"
@@ -263,25 +271,28 @@ class Erebot_Module_AZ_Game
      */
     public function proposeWord($word)
     {
-        $res = $this->_isValidWord($word);
-        if ($res === NULL)
-            return NULL;
-
-        if ($res === FALSE) {
-            $this->_invalidWords++;
-            throw new Erebot_Module_AZ_InvalidWordException($word);
+        $res = $this->isValidWord($word);
+        if ($res === null) {
+            return null;
         }
 
-        $this->_attempts++;
-        $cmp = $this->_compareWords($this->_target, $res);
-        if (!$cmp)
-            return TRUE;
+        if ($res === false) {
+            $this->invalidWords++;
+            throw new \Erebot\Module\AZ\InvalidWordException($word);
+        }
 
-        if ($cmp < 0)
-            $this->_max = $res;
-        else
-            $this->_min = $res;
-        return FALSE;
+        $this->attempts++;
+        $cmp = $this->compareWords($this->target, $res);
+        if (!$cmp) {
+            return true;
+        }
+
+        if ($cmp < 0) {
+            $this->max = $res;
+        } else {
+            $this->min = $res;
+        }
+        return false;
     }
 
     /**
@@ -295,8 +306,8 @@ class Erebot_Module_AZ_Game
     public function getLoadedListsNames()
     {
         $names = array();
-        $nameType = Erebot_Module_Wordlists_Wordlist::METADATA_NAME;
-        foreach ($this->_lists as $list) {
+        $nameType = \Erebot\Module\Wordlists\Wordlist::METADATA_NAME;
+        foreach ($this->lists as $list) {
             $names[] = $list->getMetadata($nameType);
         }
         return $names;
@@ -308,11 +319,11 @@ class Erebot_Module_AZ_Game
      *
      * \param mixed $a
      *      First word to use in the comparison.
-     *      Can be NULL if unavailable.
+     *      Can be \b null if unavailable.
      *
      * \param mixed $b
      *      Second word to use in the comparison.
-     *      Can be NULL if unavailable.
+     *      Can be \b null if unavailable.
      *
      * \retval int
      *      Returns < 0 if $a is less than $b;
@@ -320,13 +331,24 @@ class Erebot_Module_AZ_Game
      *      0 if they are equal. The comparison
      *      is case-insentive.
      */
-    protected function _compareWords($a, $b)
+    protected function compareWords($a, $b)
     {
-        if ($a === NULL)
+        if ($a === null) {
             return -1;
-        else if ($b === NULL)
+        } elseif ($b === null) {
             return -1;
-        return $this->_collator->compare($a, $b);
+        }
+        return $this->collator->compare($a, $b);
+    }
+
+    /**
+     * Returns the game's duration in seconds.
+     *
+     * \retval int
+     *      Elapsed time since the game was started.
+     */
+    public function getElapsedTime()
+    {
+        return time() - $this->started;
     }
 }
-

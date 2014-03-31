@@ -16,12 +16,12 @@
     along with Erebot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+namespace Erebot\Module\AZ;
+
 /**
  *  \brief
  *      Generic exception for this module.
  */
-class   Erebot_Module_AZ_Exception
-extends Exception
+class Exception extends \Exception
 {
 }
-

@@ -16,6 +16,8 @@
     along with Erebot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+namespace Erebot\Module;
+
 /**
  * \brief
  *      A module that provides a game called "A-Z".
@@ -25,23 +27,22 @@
  * proposed, the range of possible words is reduced, until only
  * one word remains.
  */
-class   Erebot_Module_AZ
-extends Erebot_Module_Base
+class AZ extends \Erebot\Module\Base
 {
     /// Handlers created by this module.
-    protected $_handlers;
+    protected $handlers;
 
     /// Triggers registered by this module (as tokens).
-    protected $_triggers;
+    protected $triggers;
 
     /// Associative array mapping channels to games currently in progress.
-    protected $_chans;
+    protected $chans;
 
     /**
      * This method is called whenever the module is (re)loaded.
      *
      * \param int $flags
-     *      A bitwise OR of the Erebot_Module_Base::RELOAD_*
+     *      A bitwise OR of the Erebot::Module::Base::RELOAD_*
      *      constants. Your method should take proper actions
      *      depending on the value of those flags.
      *
@@ -49,77 +50,76 @@ extends Erebot_Module_Base
      *      See the documentation on individual RELOAD_*
      *      constants for a list of possible values.
      */
-    public function _reload($flags)
+    public function reload($flags)
     {
         if ($flags & self::RELOAD_HANDLERS) {
-            $registry   = $this->_connection->getModule(
-                'Erebot_Module_TriggerRegistry'
+            $registry   = $this->connection->getModule(
+                '\\Erebot\\Module\\TriggerRegistry'
             );
-            $matchAny  = Erebot_Utils::getVStatic($registry, 'MATCH_ANY');
 
             if (!($flags & self::RELOAD_INIT)) {
-                foreach ($this->_handlers as $handler)
-                    $this->_connection->removeEventHandler($handler);
-                $registry->freeTriggers($this->_trigger, $matchAny);
+                foreach ($this->handlers as $handler) {
+                    $this->connection->removeEventHandler($handler);
+                }
+                $registry->freeTriggers($this->trigger, $registry::MATCH_ANY);
             }
 
             $trigger        = $this->parseString('trigger', 'az');
-            $this->_handlers = array();
-            $this->_trigger  = $registry->registerTriggers($trigger, $matchAny);
-            if ($this->_trigger === NULL) {
-                $fmt = $this->getFormatter(FALSE);
-                throw new Exception(
+            $this->handlers = array();
+            $this->trigger  = $registry->registerTriggers($trigger, $registry::MATCH_ANY);
+            if ($this->trigger === null) {
+                $fmt = $this->getFormatter(false);
+                throw new \Exception(
                     $fmt->_(
                         'Could not register AZ creation trigger'
                     )
                 );
             }
 
-            $this->_handlers['game'] = new Erebot_EventHandler(
-                new Erebot_Callable(array($this, 'handleGame')),
-                new Erebot_Event_Match_All(
-                    new Erebot_Event_Match_InstanceOf('Erebot_Event_ChanText'),
-                    new Erebot_Event_Match_Any(
-                        new Erebot_Event_Match_TextStatic($trigger, TRUE),
-                        new Erebot_Event_Match_TextWildcard($trigger.' *', TRUE)
+            $this->handlers['game'] = new \Erebot\EventHandler(
+                \Erebot\CallableWrapper::wrap(array($this, 'handleGame')),
+                new \Erebot\Event\Match\All(
+                    new \Erebot\Event\Match\Type('\\Erebot\\Event\\ChanText'),
+                    new \Erebot\Event\Match\Any(
+                        new \Erebot\Event\Match\TextStatic($trigger, true),
+                        new \Erebot\Event\Match\TextWildcard($trigger.' *', true)
                     )
                 )
             );
-            $this->_connection->addEventHandler($this->_handlers['game']);
+            $this->connection->addEventHandler($this->handlers['game']);
 
-            $this->_handlers['rawText'] = new Erebot_EventHandler(
-                new Erebot_Callable(array($this, 'handleRawText')),
-                new Erebot_Event_Match_All(
-                    new Erebot_Event_Match_InstanceOf('Erebot_Event_ChanText'),
-                    new Erebot_Event_Match_TextRegex(
-                        Erebot_Module_Wordlists_Wordlist::WORD_FILTER
+            $this->handlers['rawText'] = new \Erebot\EventHandler(
+                \Erebot\CallableWrapper::wrap(array($this, 'handleRawText')),
+                new \Erebot\Event\Match\All(
+                    new \Erebot\Event\Match\Type('\\Erebot\\Event\\ChanText'),
+                    new \Erebot\Event\Match\TextRegex(
+                        \Erebot\Module\Wordlists\Wordlist::WORD_FILTER
                     )
                 )
             );
-            $this->_connection->addEventHandler($this->_handlers['rawText']);
+            $this->connection->addEventHandler($this->handlers['rawText']);
         }
     }
 
     /**
      * Handles a request to list available dictionaries.
      *
-     * \param Erebot_Interface_Event_Base_ChanText $event
+     * \param Erebot::Interfaces::Event::Base::ChanText $event
      *      A message asking the bot to list available
      *      dictionaries.
      */
-    protected function _handleList(Erebot_Interface_Event_ChanText $event)
+    protected function handleList(\Erebot\Interfaces\Event\ChanText $event)
     {
         $chan   = $event->getChan();
         $fmt    = $this->getFormatter($chan);
 
         try {
-            $words = $this->_connection->getModule('Erebot_Module_Wordlists');
+            $words = $this->connection->getModule('\\Erebot\\Module\\Wordlists');
             $availableLists = $words->getAvailableLists();
-        }
-        catch (Erebot_NotFoundException $e) {
+        } catch (\Erebot\NotFoundException $e) {
             $msg = $fmt->_('No list available.');
             $this->sendMessage($chan, $msg);
-            return $event->preventDefault(TRUE);
+            return $event->preventDefault(true);
         }
 
         $msg = $fmt->_(
@@ -129,63 +129,68 @@ extends Erebot_Module_Base
             array('lists' => $availableLists)
         );
         $this->sendMessage($chan, $msg);
-        return $event->preventDefault(TRUE);
+        return $event->preventDefault(true);
     }
 
     /**
      * Handles a request to display information about
      * a currently running game.
      *
-     * \param Erebot_Interface_Event_Base_ChanText $event
+     * \param Erebot::Interfaces::Event::Base::ChanText $event
      *      A message asking the bot to display information
      *      about a running game.
      */
-    protected function _handleExisting(Erebot_Interface_Event_ChanText $event)
+    protected function handleExisting(\Erebot\Interfaces\Event\ChanText $event)
     {
         $chan   = $event->getChan();
         $fmt    = $this->getFormatter($chan);
-        $game   = $this->_chans[$chan];
+        $game   = $this->chans[$chan];
 
         $min = $game->getMinimum();
-        if ($min === NULL)
+        if ($min === null) {
             $min = '???';
+        }
 
         $max = $game->getMaximum();
-        if ($max === NULL)
+        if ($max === null) {
             $max = '???';
+        }
 
+        $cls = $this->getFactory('!Styling\\Variables\\Duration');
         $msg = $fmt->_(
             '<b>A-Z</b> (<for from="lists" item="list">'.
             '<var name="list"/></for>). Current range: '.
             '<b><var name="min"/></b> -- <b><var name="max"/></b> '.
             '(<b><var name="attempts"/></b> attempts and '.
-            '<b><var name="bad"/></b> invalid words)',
+            '<b><var name="bad"/></b> invalid words, <var name="duration"/>)',
             array(
                 'attempts' => $game->getAttemptsCount(),
                 'bad' => $game->getInvalidWordsCount(),
                 'min' => $min,
                 'max' => $max,
                 'lists' => $game->getLoadedListsNames(),
+                'duration' => new $cls($game->getElapsedTime()),
             )
         );
         $this->sendMessage($chan, $msg);
-        return $event->preventDefault(TRUE);
+        return $event->preventDefault(true);
     }
 
     /**
      * Handles a request to stop the game.
      *
-     * \param Erebot_Interface_Event_Base_ChanText $event
+     * \param Erebot::Interfaces::Event::Base::ChanText $event
      *      A message asking the bot to stop the game.
      */
-    protected function _handleStop(Erebot_Interface_Event_ChanText $event)
+    protected function handleStop(\Erebot\Interfaces\Event\ChanText $event)
     {
         $chan   = $event->getChan();
         $fmt    = $this->getFormatter($chan);
-        $game   = $this->_chans[$chan];
+        $game   = $this->chans[$chan];
 
+        $cls = $this->getFactory('!Styling\\Variables\\Duration');
         $msg = $fmt->_(
-            'The <b>A-Z</b> game was stopped after '.
+            'The <b>A-Z</b> game was stopped after <var name="duration"/>, '.
             '<b><var name="attempts"/></b> attempts and <b><var '.
             'name="bad"/></b> invalid words. The answer was <u>'.
             '<var name="answer"/></u>.',
@@ -193,39 +198,39 @@ extends Erebot_Module_Base
                 'attempts' => $game->getAttemptsCount(),
                 'bad' => $game->getInvalidWordsCount(),
                 'answer' => $game->getTarget(),
+                'duration' => new $cls($game->getElapsedTime()),
             )
         );
         $this->sendMessage($chan, $msg);
-        unset($this->_chans[$chan]);
-        return $event->preventDefault(TRUE);
+        unset($this->chans[$chan]);
+        return $event->preventDefault(true);
     }
 
     /**
      * Handles a request to create a new game.
      *
-     * \param Erebot_Interface_Event_Base_ChanText $event
+     * \param Erebot::Interfaces::Event::Base::ChanText $event
      *      A message asking the bot to create a new game.
      *
      * @SuppressWarnings(PHPMD.UnusedLocalVariable)
      */
-    protected function _handleCreate(Erebot_Interface_Event_ChanText $event)
+    protected function handleCreate(\Erebot\Interfaces\Event\ChanText $event)
     {
         $chan       = $event->getChan();
         $text       = $event->getText();
         $fmt        = $this->getFormatter($chan);
 
         try {
-            $words = $this->_connection->getModule('Erebot_Module_Wordlists');
+            $words = $this->connection->getModule('\\Erebot\\Module\\Wordlists');
             $availableLists = $words->getAvailableLists();
-        }
-        catch (Erebot_NotFoundException $e) {
+        } catch (\Erebot\NotFoundException $e) {
             $msg = $fmt->_('No list available.');
             $this->sendMessage($chan, $msg);
-            return $event->preventDefault(TRUE);
+            return $event->preventDefault(true);
         }
 
         $lists = $text->getTokens(1);
-        if ($lists === NULL) {
+        if ($lists === null) {
             $lists = $this->parseString(
                 'default_lists',
                 implode(' ', $availableLists)
@@ -234,25 +239,23 @@ extends Erebot_Module_Base
 
         $lists = explode(' ', $lists);
         try {
-            $game = new Erebot_Module_AZ_Game($words, $lists);
-        }
-        catch (Erebot_Module_AZ_NotEnoughWordsException $e) {
+            $game = new \Erebot\Module\AZ\Game($words, $lists);
+        } catch (\Erebot\Module\AZ\NotEnoughWordsException $e) {
             $msg = $fmt->_(
                 'There are not enough words in the '.
                 'selected wordlists to start a new game.'
             );
             $this->sendMessage($chan, $msg);
-            return $event->preventDefault(TRUE);
-        }
-        catch (Erebot_Module_AZ_IncompatibleException $e) {
+            return $event->preventDefault(true);
+        } catch (\Erebot\Module\AZ\IncompatibleException $e) {
             $msg = $fmt->_(
                 'The given wordlists are not compatible '.
                 'with each other.'
             );
             $this->sendMessage($chan, $msg);
-            return $event->preventDefault(TRUE);
+            return $event->preventDefault(true);
         }
-        $this->_chans[$chan] =& $game;
+        $this->chans[$chan] =& $game;
 
         $msg = $fmt->_(
             'A new <b>A-Z</b> game has been started on '.
@@ -266,7 +269,7 @@ extends Erebot_Module_Base
             )
         );
         $this->sendMessage($chan, $msg);
-        return $event->preventDefault(TRUE);
+        return $event->preventDefault(true);
     }
 
     /**
@@ -274,22 +277,10 @@ extends Erebot_Module_Base
      * display information about a running game or to list
      * available dictionaries.
      *
-     * \param Erebot_Interface_EventHandler $handler
+     * \param Erebot::Interfaces::EventHandler $handler
      *      Handler that triggered this event.
      *
-     * \param Erebot_Interface_Event_Base_ChanText $event
-     *      A message that asks the bot to create a new game,
-     *      stop a running game, display information about
-     *      a running game or list available dictionaries.
-     *    /**
-     * This method can be used to create or stop a game,
-     * display information about a running game or to list
-     * available dictionaries.
-     *
-     * \param Erebot_Interface_EventHandler $handler
-     *      Handler that triggered this event.
-     *
-     * \param Erebot_Interface_Event_Base_ChanText $event
+     * \param Erebot::Interfaces::Event::Base::ChanText $event
      *      A message that asks the bot to create a new game,
      *      stop a running game, display information about
      *      a running game or list available dictionaries.
@@ -297,55 +288,55 @@ extends Erebot_Module_Base
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function handleGame(
-        Erebot_Interface_EventHandler   $handler,
-        Erebot_Interface_Event_ChanText $event
-    )
-    {
+        \Erebot\Interfaces\EventHandler   $handler,
+        \Erebot\Interfaces\Event\ChanText $event
+    ) {
         $chan       = $event->getChan();
         $text       = $event->getText();
 
         $cmds = array("list", "lists");
-        if (in_array(strtolower($text->getTokens(1)), $cmds))
-            return $this->_handleList($event);
-
-        if (isset($this->_chans[$chan])) {
-            $cmds = array("cancel", "end", "stop");
-            if (in_array(strtolower($text->getTokens(1)), $cmds))
-                return $this->_handleStop($event);
-            return $this->_handleExisting($event);
+        if (in_array(strtolower($text->getTokens(1)), $cmds)) {
+            return $this->handleList($event);
         }
 
-        return $this->_handleCreate($event);
+        if (isset($this->chans[$chan])) {
+            $cmds = array("cancel", "end", "stop");
+            if (in_array(strtolower($text->getTokens(1)), $cmds)) {
+                return $this->handleStop($event);
+            }
+            return $this->handleExisting($event);
+        }
+
+        return $this->handleCreate($event);
     }
 
     /**
      * Handles messages: words are interpreted
      * as propositions for the game.
      *
-     * \param Erebot_Interface_EventHandler $handler
+     * \param Erebot::Interfaces::EventHandler $handler
      *      Handler that triggered this event.
      *
-     * \param Erebot_Interface_Event_Base_ChanText $event
+     * \param Erebot::Interfaces::Event::Base::ChanText $event
      *      A message with a proposition for the game.
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function handleRawText(
-        Erebot_Interface_EventHandler   $handler,
-        Erebot_Interface_Event_ChanText $event
-    )
-    {
+        \Erebot\Interfaces\EventHandler   $handler,
+        \Erebot\Interfaces\Event\ChanText $event
+    ) {
         $chan   = $event->getChan();
         $fmt    = $this->getFormatter($chan);
 
-        if (!isset($this->_chans[$chan]))
+        if (!isset($this->chans[$chan])) {
             return;
+        }
 
-        $game =& $this->_chans[$chan];
+        $game =& $this->chans[$chan];
         try {
             $found = $game->proposeWord((string) $event->getText());
-        }
-        catch (Erebot_Module_AZ_InvalidWordException $e) {
+        } catch (\Erebot\Module\AZ\InvalidWordException $e) {
             $msg = $fmt->_(
                 '<b><var name="word"/></b> doesn\'t '.
                 'exist or is incorrect for this game.',
@@ -355,8 +346,9 @@ extends Erebot_Module_Base
             return;
         }
 
-        if ($found === NULL)
+        if ($found === null) {
             return;
+        }
 
         if ($found) {
             $msg = $fmt->_(
@@ -370,27 +362,31 @@ extends Erebot_Module_Base
             );
             $this->sendMessage($chan, $msg);
 
+            $cls = $this->getFactory('!Styling\\Variables\\Duration');
             $msg = $fmt->_(
-                'The answer was found after '.
+                'The answer was found after <var name="duration"/>, '.
                 '<b><var name="attempts"/></b> attempts and '.
                 '<b><var name="bad"/></b> incorrect words.',
                 array(
                     'attempts' => $game->getAttemptsCount(),
                     'bad' => $game->getInvalidWordsCount(),
+                    'duration' => new $cls($game->getElapsedTime()),
                 )
             );
             $this->sendMessage($chan, $msg);
-            unset($this->_chans[$chan]);
-            return $event->preventDefault(TRUE);
+            unset($this->chans[$chan]);
+            return $event->preventDefault(true);
         }
 
         $min = $game->getMinimum();
-        if ($min === NULL)
+        if ($min === null) {
             $min = '???';
+        }
 
         $max = $game->getMaximum();
-        if ($max === NULL)
+        if ($max === null) {
             $max = '???';
+        }
 
         $msg = $fmt->_(
             'New range: <b><var name="min"/></b> -- <b><var name="max"/></b>',
@@ -402,4 +398,3 @@ extends Erebot_Module_Base
         $this->sendMessage($chan, $msg);
     }
 }
-
