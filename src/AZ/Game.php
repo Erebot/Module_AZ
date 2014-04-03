@@ -87,8 +87,8 @@ class Game
                 $collator       = $wordlist->getCollator();
 
                 if ($this->collator !== null) {
-                    if ($this->collator->getLocale(Locale::ACTUAL_LOCALE) !=
-                        $collator->getLocale(Locale::ACTUAL_LOCALE)) {
+                    if ($this->collator->getLocale(\Locale::ACTUAL_LOCALE) !=
+                        $collator->getLocale(\Locale::ACTUAL_LOCALE)) {
                         throw new \Erebot\Module\AZ\IncompatibleException(
                             "Incompatible wordlists"
                         );
