@@ -1,12 +1,16 @@
-/vendor
+/build/
+/vendor/
 
-/data/i18n/*/LC_MESSAGES/*.mo
+*.mo
 /tests/wordlists/*.sqlite
 
-/docs/api
-/docs/coverage
-/docs/enduser
-/docs/src/generic
+/docs/api/
+/docs/coverage/
+/docs/enduser/
+/docs/src/generic/
+/docs/pot/.doctrees/
+/docs/pot/generic/
+/docs/i18n/*/LC_MESSAGES/generic/
 
 /*.pem
 /*.phar
