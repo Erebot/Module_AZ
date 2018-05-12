@@ -77,7 +77,7 @@ class AZ extends \Erebot\Module\Base
             }
 
             $this->handlers['game'] = new \Erebot\EventHandler(
-                \Erebot\CallableWrapper::wrap(array($this, 'handleGame')),
+                array($this, 'handleGame'),
                 new \Erebot\Event\Match\All(
                     new \Erebot\Event\Match\Type('\\Erebot\\Event\\ChanText'),
                     new \Erebot\Event\Match\Any(
@@ -89,7 +89,7 @@ class AZ extends \Erebot\Module\Base
             $this->connection->addEventHandler($this->handlers['game']);
 
             $this->handlers['rawText'] = new \Erebot\EventHandler(
-                \Erebot\CallableWrapper::wrap(array($this, 'handleRawText')),
+                array($this, 'handleRawText'),
                 new \Erebot\Event\Match\All(
                     new \Erebot\Event\Match\Type('\\Erebot\\Event\\ChanText'),
                     new \Erebot\Event\Match\TextRegex(
