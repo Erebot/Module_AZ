@@ -141,4 +141,5 @@ from the first generation as the dictionary.
     14:50:56 <@Clicky> !az cancel
     14:50:56 < Erebot> La partie de A-Z a été arrêtée après 0 essais et 0 mots incorrects. La réponse était roucoups.
 
+
 ..  vim: ts=4 et
